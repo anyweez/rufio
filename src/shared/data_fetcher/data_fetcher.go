@@ -5,9 +5,13 @@ import (
 	"fmt"
 	// mgo "gopkg.in/mgo.v2"
 	// "io/ioutil"
-	"math"
+	// "math"
 	"net/http"
 	"time"
+)
+
+const (
+	RIOT_API_LIMIT_BUCKET_SIZE = 10 // Riot limits to X queries per 10 seconds.
 )
 
 type DataFetcherConfig struct {
@@ -50,29 +54,42 @@ func (df *DataFetcher) Close() {
  * from the channel in a single second.
  */
 func manage_rate(df *DataFetcher) {
-	current_bucket := currentBucket()
-	count := 0
-
+	// 10 is the "bucket size" that Riot uses to define it's API.
+	secondsPerRequest := float64(RIOT_API_LIMIT_BUCKET_SIZE) / float64(df.Config.RateLimit)
 	for {
-		// If it's a new second, restart the counter.
-		if currentBucket() != current_bucket {
-			current_bucket = currentBucket()
-			count = 0
-		}
-
-		// Check to see if the rate limit is still valid.
-		if count < df.Config.RateLimit {
-			df.Ready <- true
-			count += 1
-		}
-
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(time.Duration(secondsPerRequest) * time.Second)
+		df.Ready <- true
 	}
+	/*
+		time.AfterFunc(1*time.Second, func() {
+			df.Ready <- true
+		})
+		current_bucket := currentBucket()
+		count := 0
+
+		for {
+			// If it's a new second, restart the counter.
+			if currentBucket() != current_bucket {
+				current_bucket = currentBucket()
+				count = 0
+			}
+
+			// Check to see if the rate limit is still valid.
+			if count < df.Config.RateLimit {
+				df.Ready <- true
+				count += 1
+			}
+
+			time.Sleep(10 * time.Millisecond)
+		}
+	*/
 }
 
+/*
 func currentBucket() int {
 	return int(math.Floor(float64(time.Now().Second()) / 13))
 }
+*/
 
 func run_fetcher(df *DataFetcher) {
 	// Inifinite loop to continuously fetch data (restricted by rate limiter).
