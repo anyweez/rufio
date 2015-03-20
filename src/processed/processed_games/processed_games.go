@@ -6,6 +6,7 @@ import (
 	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"log"
+	// "shared/queue"
 	"shared/structs"
 	"time"
 	// "github.com/iwanbk/gobeanstalk"
@@ -35,8 +36,10 @@ func getJobChannel() chan proto.ProcessedJobRequest {
 func main() {
 	flag.Parse()
 	// TODO: replace this with pulling something from a live queue.
+	// jc := queue.NewQueueListener("localhost:11300", []string{"generate_processed_game"})
 	jc := getJobChannel()
 
+	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range jc {
 		fmt.Println(fmt.Sprintf("Recceived job PROCESS GAME: %d", *job.TargetId))
 
