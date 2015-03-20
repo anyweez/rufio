@@ -1,4 +1,4 @@
-package main
+package structs
 
 import (
 	"time"
@@ -34,7 +34,7 @@ type GameResponseGame struct {
 	Spell2        int
 	Level         int
 	IpEarned      int
-	CreateDate    int
+	CreateDate    int // reported in milliseconds
 	FellowPlayers []GameResponsePlayer
 	Stats         GameResponseStats
 }
