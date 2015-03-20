@@ -1,0 +1,8 @@
+#!/bin/bash
+
+## This script reads through raw logs and generates lists of summoners and games.
+## The outputs are used for generating processed logs.
+
+mkdir -p input
+mongo --quiet scripts/RawGameIds.js > input/games
+mongo --quiet scripts/RawSummonerIds.js > input/summoners
