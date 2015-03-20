@@ -15,7 +15,7 @@ import (
 
 // A few user-specified flags required for fetching summoner game data.
 var API_KEY = flag.String("apikey", "", "Riot API key")
-var CHAMPION_LIST = flag.String("summoners", "champions", "List of summoner ID's")
+var CHAMPION_LIST = flag.String("summoners", "input/summoners", "List of summoner ID's")
 var MONGO_CONNECTION_URL = flag.String("mongodb", "localhost", "The URL that mgo should use to connect to Mongo.")
 
 const API_URL = "https://na.api.pvp.net/api/lol/na/v2.5/league/by-summoner/%d?api_key=%s"
