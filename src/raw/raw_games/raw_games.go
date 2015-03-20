@@ -10,6 +10,7 @@ import (
 	"net/http"
 	shared "shared"
 	fetcher "shared/data_fetcher"
+	"shared/structs"
 )
 
 // A few user-specified flags required for fetching summoner game data.
@@ -45,7 +46,7 @@ func main() {
 			body, _ := ioutil.ReadAll(response.Body)
 
 			// Parse and store the response.
-			gr := NewGameResponse()
+			gr := structs.NewGameResponse()
 			json.Unmarshal(body, &gr.Response)
 			fmt.Println(fmt.Sprintf("%d: %s", len(gr.Response.Games), url))
 
