@@ -56,7 +56,7 @@ func main() {
 	})
 
 	// Load in summoner ID's and start generating URL's.
-	summoner_ids, serr := shared.LoadSummonerIds(*CHAMPION_LIST)
+	summoner_ids, serr := shared.LoadIds(*CHAMPION_LIST)
 	if serr != nil {
 		fmt.Println(serr.Error())
 		return

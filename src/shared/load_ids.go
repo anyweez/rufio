@@ -7,7 +7,7 @@ import (
 	// "strings"
 )
 
-func LoadSummonerIds(filename string) ([]int, error) {
+func LoadIds(filename string) ([]int, error) {
 	ids := make([]int, 0)
 
 	// Read the file
