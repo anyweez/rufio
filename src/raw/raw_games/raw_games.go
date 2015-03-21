@@ -8,15 +8,15 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	shared "shared"
 	fetcher "shared/data_fetcher"
+	"shared/queue"
 	"shared/structs"
 )
 
 // A few user-specified flags required for fetching summoner game data.
 var API_KEY = flag.String("apikey", "", "Riot API key")
-var CHAMPION_LIST = flag.String("summoners", "input/summoners", "List of summoner ID's")
 var MONGO_CONNECTION_URL = flag.String("mongodb", "localhost", "The URL that mgo should use to connect to Mongo.")
+var BEANSTALK_ADDRESS = flag.String("queue", "localhost:11300", "[host:port] The address of the beanstalk queue to pull jobs from.")
 
 const API_URL = "https://na.api.pvp.net/api/lol/na/v1.3/game/by-summoner/%d/recent?api_key=%s"
 
@@ -56,16 +56,16 @@ func main() {
 	})
 
 	// Load in summoner ID's and start generating URL's.
-	summoner_ids, serr := shared.LoadIds(*CHAMPION_LIST)
-	if serr != nil {
-		fmt.Println(serr.Error())
-		return
+	jc, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"retrieve_recent_games"})
+	if err != nil {
+		log.Fatal(err.Error())
 	}
 
-	for _, summoner_id := range summoner_ids {
-		urlChannel <- fmt.Sprintf(API_URL, summoner_id, *API_KEY)
+	// Continuously retrieve jobs from the queue.
+	for job := range jc {
+		// TargetId for this job type are all summoner ID's.
+		urlChannel <- fmt.Sprintf(API_URL, *job.TargetId, *API_KEY)
 	}
-
 	close(urlChannel)
 	df.Close()
 }

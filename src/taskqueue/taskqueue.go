@@ -15,7 +15,7 @@ import (
  */
 
 var TARGET_LIST = flag.String("target_ids", "input/summoners", "The list of line-delimited id's that should be created as target id's few new tasks.")
-var JOB_TYPE = flag.String("type", "", "Job type: {RETRIEVE_RECENT_GAMES, GENERATE_PROCESSED_GAME, GNEREATE_PROCESSED_SUMMONER}.")
+var JOB_TYPE = flag.String("type", "", "Job type: {RETRIEVE_RECENT_GAMES, RETRIEVE_RECENT_LEAGUE, GENERATE_PROCESSED_GAME, GNEREATE_PROCESSED_SUMMONER}.")
 var QUEUE_ADDRESS = flag.String("addr", "localhost:11300", "[host:port] for the queue to populate.")
 
 func main() {
@@ -42,6 +42,10 @@ func main() {
 	case "GENERATE_PROCESSED_SUMMONER":
 		jobType = proto.ProcessedJobRequest_GENERATE_PROCESSED_SUMMONER
 		tubeName = "generate_processed_summoner"
+		break
+	case "RETRIEVE_RECENT_LEAGUE":
+		jobType = proto.ProcessedJobRequest_RETRIEVE_RECENT_LEAGUE
+		tubeName = "retrieve_recent_league"
 		break
 	}
 
