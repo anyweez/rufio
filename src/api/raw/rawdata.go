@@ -9,6 +9,8 @@ import (
 	strconv "strconv"
 )
 
+// TODO: engineer this whole mess better.
+
 /**
  * Fetch a set of raw_games that include information related to the specified
  * game. Note that each GameResponse will only include data for a single player
@@ -37,9 +39,70 @@ func GetPartialGames(gameid int) []structs.GameResponse {
 }
 
 /**
+ * Get a list of all complete games (games with stats available) for the provided
+ * summoner ID.
+ */
+func GetCompleteGamesBySummoner(summoner_id int) []structs.GameResponse {
+	gr := make([]structs.GameResponse, 0)
+	session, cerr := mgo.Dial("localhost")
+	if cerr != nil {
+		fmt.Println("Cannot connect to mongodb instance")
+		return make([]structs.GameResponse, 0)
+	}
+	defer session.Close()
+
+	collection := session.DB("league").C("raw_games")
+	iter := collection.Find(bson.M{"response.summonerid": summoner_id}).Iter()
+
+	result := structs.GameResponseWrapper{}
+
+	for iter.Next(&result) {
+		gr = append(gr, result.Response)
+	}
+
+	return gr
+}
+
+func GetIncompleteGameIdsBySummoner(summoner_id int) []int {
+	gameIds := make([]int, 0)
+	session, cerr := mgo.Dial("localhost")
+	if cerr != nil {
+		fmt.Println("Cannot connect to mongodb instance")
+		return gameIds
+	}
+	defer session.Close()
+
+	collection := session.DB("league").C("raw_games")
+	iter := collection.Find(bson.M{
+		"response.games.fellowplayers.summonerid": summoner_id,
+	}).Iter()
+	// TODO: Add these back.
+	// , bson.M{
+	// 	"response.games.gameid":                   true,
+	// 	"response.games.fellowplayers.summonerid": true,
+	// }).Iter()
+
+	result := structs.GameResponseWrapper{}
+
+	// Iterate through all results and find game ID's that contain this player as a
+	// fellow player.
+	for iter.Next(&result) {
+		for _, game := range result.Response.Games {
+			for _, player := range game.FellowPlayers {
+				if player.SummonerId == summoner_id {
+					gameIds = append(gameIds, game.GameId)
+				}
+			}
+		}
+	}
+
+	return gameIds
+}
+
+/**
  * Returns the most recent raw_league result for the provided summoner.
  */
-func GetLatestLeagues(summoner_id int, queue_type string) (structs.LeagueResponseTier, error) {
+func GetLatestLeague(summoner_id int, queue_type string) (structs.LeagueResponseTier, error) {
 	// Connect to Mongo and search for entries for this summoner.
 	session, cerr := mgo.Dial("localhost")
 	if cerr != nil {

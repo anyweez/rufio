@@ -11,37 +11,31 @@ import (
 	"time"
 	// "github.com/iwanbk/gobeanstalk"
 	// "log"
-	gproto "code.google.com/p/goprotobuf/proto"
-	proto "proto"
+	// gproto "code.google.com/p/goprotobuf/proto"
+	// proto "proto"
 )
 
 var MONGO_CONNECTION_URL = flag.String("mongodb", "localhost", "The URL that mgo should use to connect to Mongo.")
 var BEANSTALK_ADDRESS = flag.String("queue", "localhost:11300", "[host:port] The address of the beanstalk queue to pull jobs from.")
 
-func addItem(c chan proto.ProcessedJobRequest) {
-	c <- proto.ProcessedJobRequest{
-		//		Type:     gproto.Enum(proto.ProcessedJobRequest_GENERATE_PROCESSED_GAME),
-		TargetId: gproto.Int64(1748100615),
-	}
-
-	close(c)
-}
-
-func getJobChannel() chan proto.ProcessedJobRequest {
-	jc := make(chan proto.ProcessedJobRequest)
-	go addItem(jc)
-
-	return jc
-}
-
 func main() {
 	flag.Parse()
 	// TODO: replace this with pulling something from a live queue.
-	jc, err := queue.NewQueueListener("localhost:11300", []string{"generate_processed_game"})
+	jc, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"generate_processed_game"})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	// jc := getJobChannel()
+
+	// Create a MongoDB session and save the data.
+	log.Println("Connecting to Mongo @ " + *MONGO_CONNECTION_URL)
+	session, cerr := mgo.Dial(*MONGO_CONNECTION_URL)
+	if cerr != nil {
+		fmt.Println("Cannot connect to mongodb instance")
+		return
+	}
+	defer session.Close()
+
+	collection := session.DB("league").C("processed_games")
 
 	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range jc {
@@ -65,7 +59,7 @@ func main() {
 				if game.GameId == pg.GameId {
 					// TODO: instead of getting 'latest', should get 'closest to timestamp X (but not after)'.
 					// Current approach works fine unless we're running a backfill.
-					latestLeague, lerr := raw.GetLatestLeagues(response.SummonerId, "RANKED_SOLO_5x5")
+					latestLeague, lerr := raw.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
 					tier := "UNKNOWN"
 					division_str := "0"
 					division := 0
@@ -122,31 +116,8 @@ func main() {
 			pg.Stats = append(pg.Stats, v)
 		}
 
-		// Create a MongoDB session and save the data.
-		log.Println("Connecting to Mongo @ " + *MONGO_CONNECTION_URL)
-		session, cerr := mgo.Dial(*MONGO_CONNECTION_URL)
-		if cerr != nil {
-			fmt.Println("Cannot connect to mongodb instance")
-			return
-		}
-		collection := session.DB("league").C("processed_games")
 		log.Println(fmt.Sprintf("Saving processed game #%d...", pg.GameId))
 		collection.Insert(pg)
 		log.Println("Done.")
 	}
-
-	// conn, err := gobeanstalk.Dial("localhost:11300")
-	// if err != nil {
-	// 	log.Fatal(err.Error())
-	// }
-
-	// for {
-	// 	raw_job, rerr := conn.Reserve()
-	// 	if rerr != nil {
-	// 		log.Fatal(rerr.Error())
-	// 	}
-
-	// 	job := raw_job.(proto.ProcessedJobRequest)
-
-	// }
 }
