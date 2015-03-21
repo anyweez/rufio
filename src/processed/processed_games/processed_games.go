@@ -6,7 +6,7 @@ import (
 	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"log"
-	// "shared/queue"
+	"shared/queue"
 	"shared/structs"
 	"time"
 	// "github.com/iwanbk/gobeanstalk"
@@ -16,6 +16,7 @@ import (
 )
 
 var MONGO_CONNECTION_URL = flag.String("mongodb", "localhost", "The URL that mgo should use to connect to Mongo.")
+var BEANSTALK_ADDRESS = flag.String("queue", "localhost:11300", "[host:port] The address of the beanstalk queue to pull jobs from.")
 
 func addItem(c chan proto.ProcessedJobRequest) {
 	c <- proto.ProcessedJobRequest{
@@ -36,12 +37,15 @@ func getJobChannel() chan proto.ProcessedJobRequest {
 func main() {
 	flag.Parse()
 	// TODO: replace this with pulling something from a live queue.
-	// jc := queue.NewQueueListener("localhost:11300", []string{"generate_processed_game"})
-	jc := getJobChannel()
+	jc, err := queue.NewQueueListener("localhost:11300", []string{"generate_processed_game"})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	// jc := getJobChannel()
 
 	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range jc {
-		fmt.Println(fmt.Sprintf("Recceived job PROCESS GAME: %d", *job.TargetId))
+		fmt.Println(fmt.Sprintf("Received job PROCESS GAME: %d", *job.TargetId))
 
 		pg := structs.ProcessedGame{}
 		pg.GameId = int(*job.TargetId)
@@ -59,7 +63,6 @@ func main() {
 				// Only do processing on the game that's being handled in this job.
 				// Other games should be discarded.
 				if game.GameId == pg.GameId {
-					fmt.Println(response.SummonerId)
 					// TODO: instead of getting 'latest', should get 'closest to timestamp X (but not after)'.
 					// Current approach works fine unless we're running a backfill.
 					latestLeague, lerr := raw.GetLatestLeagues(response.SummonerId, "RANKED_SOLO_5x5")

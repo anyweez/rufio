@@ -11,7 +11,7 @@ import (
 
 /**
  * This program reads in an arbitrary list of ID's and generates job requests for each of them. The job requests are
- * added to a Beanstalk queue at QUEUE_ADDRESS.
+ * added to a Beanstalk queue at QUEUE_ADDRESS. Logs processors can pull jobs from the desired queues.
  */
 
 var TARGET_LIST = flag.String("target_ids", "input/summoners", "The list of line-delimited id's that should be created as target id's few new tasks.")

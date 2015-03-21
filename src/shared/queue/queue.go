@@ -3,7 +3,8 @@ package queue
 import (
 	gproto "code.google.com/p/goprotobuf/proto"
 	"github.com/kr/beanstalk"
-	"proto"
+	proto "proto"
+	"time"
 )
 
 /**
@@ -22,17 +23,18 @@ func NewQueueListener(address string, tubes []string) (chan proto.ProcessedJobRe
 	}
 
 	// Create a new tube set and kick off a concurrent goroutine to continuously populate it.
-	ts := beanstalk.NewTubeSet(conn, tubes)
+	ts := beanstalk.NewTubeSet(conn, tubes...)
 	go harvestJobs(ts, out)
 
-	return out
+	return out, nil
 }
 
 func harvestJobs(ts *beanstalk.TubeSet, out chan proto.ProcessedJobRequest) {
 	defer ts.Conn.Close()
 
 	for {
-		id, body, err := ts.Reserve(0)
+		// Jobs will be claimed by another worker if they exceed two hours runtime.
+		id, body, err := ts.Reserve(2 * time.Hour)
 
 		if err != nil {
 			close(out)
@@ -41,7 +43,7 @@ func harvestJobs(ts *beanstalk.TubeSet, out chan proto.ProcessedJobRequest) {
 		job := proto.ProcessedJobRequest{}
 
 		gproto.Unmarshal(body, &job)
-		job.JobId = id
+		job.JobId = gproto.Uint64(id)
 
 		// Block until the current task is removed from the channel, then
 		// pop another one on.
