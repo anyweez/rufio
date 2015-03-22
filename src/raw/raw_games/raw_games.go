@@ -35,37 +35,42 @@ func main() {
 	collection := session.DB("league").C("raw_games")
 	log.Println("Done.")
 
+	// Connect to beanstalk task queue to get summoner ID's.
+	listener, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"retrieve_recent_games"})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	// Create the data fetcher that's going to make all of the API requests
 	// and store the data in StoreCollection (Mongo).
-	urlChannel := make(chan string)
+	requests := make(chan structs.FetchRequest)
 
 	df := fetcher.NewDataFetcher(fetcher.DataFetcherConfig{
 		RateLimit: 10,
-		Urls:      urlChannel,
-		WithResponse: func(response *http.Response, url string) {
+		Requests:  requests,
+		WithResponse: func(response *http.Response, req structs.FetchRequest) {
 			body, _ := ioutil.ReadAll(response.Body)
 
 			// Parse and store the response.
 			gr := structs.NewGameResponse()
 			json.Unmarshal(body, &gr.Response)
-			fmt.Println(fmt.Sprintf("%d: %s", len(gr.Response.Games), url))
+			fmt.Println(fmt.Sprintf("%d: %s", len(gr.Response.Games), req.Url))
 
 			// Store the response
 			collection.Insert(gr)
+			// Complete the job
+			listener.Finish(req.Job)
 		},
 	})
 
-	// Load in summoner ID's and start generating URL's.
-	jc, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"retrieve_recent_games"})
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
 	// Continuously retrieve jobs from the queue.
-	for job := range jc {
+	for job := range listener.Queue {
 		// TargetId for this job type are all summoner ID's.
-		urlChannel <- fmt.Sprintf(API_URL, *job.TargetId, *API_KEY)
+		requests <- structs.FetchRequest{
+			Job: job,
+			Url: fmt.Sprintf(API_URL, *job.TargetId, *API_KEY),
+		}
 	}
-	close(urlChannel)
+	close(requests)
 	df.Close()
 }

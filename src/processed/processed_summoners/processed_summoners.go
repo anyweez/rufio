@@ -16,7 +16,7 @@ var BEANSTALK_ADDRESS = flag.String("queue", "localhost:11300", "[host:port] The
 func main() {
 	flag.Parse()
 	// TODO: replace this with pulling something from a live queue.
-	jc, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"generate_processed_summoner"})
+	listener, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"generate_processed_summoner"})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -32,7 +32,7 @@ func main() {
 	defer session.Close()
 
 	// This will be infinite unless `jc` is closed (which it currently isn't).
-	for job := range jc {
+	for job := range listener.Queue {
 		summoner := structs.ProcessedSummoner{
 			SummonerId: int(*job.TargetId),
 		}
@@ -95,5 +95,6 @@ func main() {
 		log.Println(fmt.Sprintf("Saving processed summoner #%d...", summoner.SummonerId))
 		collection.Insert(summoner)
 		log.Println("Done.")
+		listener.Finish(job)
 	}
 }

@@ -7,6 +7,7 @@ import (
 	// "io/ioutil"
 	// "math"
 	"net/http"
+	"shared/structs"
 	"time"
 )
 
@@ -15,8 +16,8 @@ const (
 )
 
 type DataFetcherConfig struct {
-	Urls         chan string
-	WithResponse func(*http.Response, string)
+	Requests     chan structs.FetchRequest
+	WithResponse func(*http.Response, structs.FetchRequest)
 	RateLimit    int
 }
 
@@ -60,29 +61,6 @@ func manage_rate(df *DataFetcher) {
 		time.Sleep(time.Duration(secondsPerRequest) * time.Second)
 		df.Ready <- true
 	}
-	/*
-		time.AfterFunc(1*time.Second, func() {
-			df.Ready <- true
-		})
-		current_bucket := currentBucket()
-		count := 0
-
-		for {
-			// If it's a new second, restart the counter.
-			if currentBucket() != current_bucket {
-				current_bucket = currentBucket()
-				count = 0
-			}
-
-			// Check to see if the rate limit is still valid.
-			if count < df.Config.RateLimit {
-				df.Ready <- true
-				count += 1
-			}
-
-			time.Sleep(10 * time.Millisecond)
-		}
-	*/
 }
 
 /*
@@ -93,10 +71,10 @@ func currentBucket() int {
 
 func run_fetcher(df *DataFetcher) {
 	// Inifinite loop to continuously fetch data (restricted by rate limiter).
-	for url := range df.Config.Urls {
+	for request := range df.Config.Requests {
 		<-df.Ready
 		// Fetch recent game data.
-		go fetch(url, df)
+		go fetch(request, df)
 	}
 
 }
@@ -104,13 +82,13 @@ func run_fetcher(df *DataFetcher) {
 /**
  * Fetch the data from the provided URL and (eventually) store it.
  */
-func fetch(url string, df *DataFetcher) {
-	resp, err := http.Get(url)
+func fetch(req structs.FetchRequest, df *DataFetcher) {
+	resp, err := http.Get(req.Url)
 
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
 		defer resp.Body.Close()
-		df.Config.WithResponse(resp, url)
+		df.Config.WithResponse(resp, req)
 	}
 }

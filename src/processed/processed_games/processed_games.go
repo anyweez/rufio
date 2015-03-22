@@ -21,7 +21,7 @@ var BEANSTALK_ADDRESS = flag.String("queue", "localhost:11300", "[host:port] The
 func main() {
 	flag.Parse()
 	// TODO: replace this with pulling something from a live queue.
-	jc, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"generate_processed_game"})
+	listener, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"generate_processed_game"})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -38,7 +38,7 @@ func main() {
 	collection := session.DB("league").C("processed_games")
 
 	// This will be infinite unless `jc` is closed (which it currently isn't).
-	for job := range jc {
+	for job := range listener.Queue {
 		fmt.Println(fmt.Sprintf("Received job PROCESS GAME: %d", *job.TargetId))
 
 		pg := structs.ProcessedGame{}
@@ -119,5 +119,6 @@ func main() {
 		log.Println(fmt.Sprintf("Saving processed game #%d...", pg.GameId))
 		collection.Insert(pg)
 		log.Println("Done.")
+		listener.Finish(job)
 	}
 }

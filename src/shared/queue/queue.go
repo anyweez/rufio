@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+type QueueListener struct {
+	Queue chan proto.ProcessedJobRequest
+
+	conn    *beanstalk.Conn
+	tubeset *beanstalk.TubeSet
+}
+
 /**
  * This function returns a channel that continuously pulls from the specified beanstalk queue
  * and returns jobs for a worker to work on.
@@ -14,19 +21,28 @@ import (
  * Closing the channel is safe and will stop listening to all tubes.
  * TODO: make closing the channel safe.
  */
-func NewQueueListener(address string, tubes []string) (chan proto.ProcessedJobRequest, error) {
+func NewQueueListener(address string, tubes []string) (QueueListener, error) {
+	listener := QueueListener{}
 	conn, cerr := beanstalk.Dial("tcp", address)
-	out := make(chan proto.ProcessedJobRequest)
+	listener.Queue = make(chan proto.ProcessedJobRequest)
 
 	if cerr != nil {
-		return out, cerr
+		return listener, cerr
 	}
 
 	// Create a new tube set and kick off a concurrent goroutine to continuously populate it.
-	ts := beanstalk.NewTubeSet(conn, tubes...)
-	go harvestJobs(ts, out)
+	listener.tubeset = beanstalk.NewTubeSet(conn, tubes...)
+	listener.conn = conn
+	go harvestJobs(listener.tubeset, listener.Queue)
 
-	return out, nil
+	return listener, nil
+}
+
+/**
+ * Complete the current job and remove it from the queue.
+ */
+func (q *QueueListener) Finish(job proto.ProcessedJobRequest) {
+	q.conn.Delete(*job.JobId)
 }
 
 func harvestJobs(ts *beanstalk.TubeSet, out chan proto.ProcessedJobRequest) {
