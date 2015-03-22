@@ -1,9 +1,9 @@
 package main
 
 import (
-	gproto "code.google.com/p/goprotobuf/proto"
 	"errors"
 	"flag"
+	gproto "github.com/golang/protobuf/proto"
 	"log"
 	proto "proto"
 	shared "shared"

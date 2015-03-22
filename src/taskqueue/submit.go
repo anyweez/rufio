@@ -1,8 +1,8 @@
 package main
 
 import (
-	gproto "code.google.com/p/goprotobuf/proto"
 	"fmt"
+	gproto "github.com/golang/protobuf/proto"
 	"github.com/kr/beanstalk"
 	proto "proto"
 	"time"

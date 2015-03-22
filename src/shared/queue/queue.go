@@ -1,7 +1,7 @@
 package queue
 
 import (
-	gproto "code.google.com/p/goprotobuf/proto"
+	gproto "github.com/golang/protobuf/proto"
 	"github.com/kr/beanstalk"
 	proto "proto"
 	"time"
