@@ -46,8 +46,9 @@ func main() {
 	requests := make(chan structs.FetchRequest)
 
 	df := fetcher.NewDataFetcher(fetcher.DataFetcherConfig{
-		RateLimit: 10,
-		Requests:  requests,
+		RateLimit:  500,
+		RatePeriod: 600,
+		Requests:   requests,
 		WithResponse: func(response *http.Response, req structs.FetchRequest) {
 			body, _ := ioutil.ReadAll(response.Body)
 

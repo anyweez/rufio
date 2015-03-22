@@ -11,14 +11,11 @@ import (
 	"time"
 )
 
-const (
-	RIOT_API_LIMIT_BUCKET_SIZE = 10 // Riot limits to X queries per 10 seconds.
-)
-
 type DataFetcherConfig struct {
 	Requests     chan structs.FetchRequest
 	WithResponse func(*http.Response, structs.FetchRequest)
-	RateLimit    int
+	RateLimit    int // number of requests per period
+	RatePeriod   int // length of period (in seconds)
 }
 
 type DataFetcher struct {
@@ -56,7 +53,7 @@ func (df *DataFetcher) Close() {
  */
 func manage_rate(df *DataFetcher) {
 	// 10 is the "bucket size" that Riot uses to define it's API.
-	secondsPerRequest := float64(RIOT_API_LIMIT_BUCKET_SIZE) / float64(df.Config.RateLimit)
+	secondsPerRequest := float64(df.Config.RatePeriod) / float64(df.Config.RateLimit)
 	for {
 		time.Sleep(time.Duration(secondsPerRequest) * time.Second)
 		df.Ready <- true
