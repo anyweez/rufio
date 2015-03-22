@@ -4,7 +4,7 @@ import ()
 
 type ProcessedSummoner struct {
 	// Basic summoner information.
-	SummonerId int
+	SummonerId int `bson:"_id"`
 	Name       string
 	// Latest known ranking.
 	CurrentTier     string

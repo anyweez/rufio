@@ -1,0 +1,15 @@
+package request_proto;
+
+message ProcessedJobRequest {
+	optional uint64 job_id = 1;
+	optional JoinType type = 2;
+	optional int64 target_id = 3;
+
+	enum JoinType {
+		// src/processed/processed_games
+		GENERATE_PROCESSED_GAME = 1;
+		RETRIEVE_RECENT_GAMES = 2;
+		GENERATE_PROCESSED_SUMMONER = 3;
+		RETRIEVE_RECENT_LEAGUE = 4;
+	}
+}
