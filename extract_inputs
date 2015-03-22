@@ -4,5 +4,5 @@
 ## The outputs are used for generating processed logs.
 
 mkdir -p input
-mongo --quiet scripts/RawGameIds.js > input/games
-mongo --quiet scripts/RawSummonerIds.js > input/summoners
+mongo --quiet scripts/RawGameIds.js | shuf > input/games
+mongo --quiet scripts/RawSummonerIds.js | shuf > input/summoners
