@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"os"
 	"strconv"
-	// "strings"
 )
 
 func LoadIds(filename string) ([]int, error) {

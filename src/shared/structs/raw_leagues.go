@@ -5,7 +5,7 @@ import (
 )
 
 type ResponseMetadata struct {
-	RequestTime int64
+	RequestTime time.Time
 }
 
 type LeagueResponseWrapper struct {
@@ -36,7 +36,7 @@ type LeagueResponseEntry struct {
 
 func NewLeagueResponse() LeagueResponseWrapper {
 	grw := LeagueResponseWrapper{}
-	grw.Metadata.RequestTime = time.Now().Unix()
+	grw.Metadata.RequestTime = time.Now()
 
 	return grw
 }

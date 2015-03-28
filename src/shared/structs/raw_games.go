@@ -5,7 +5,7 @@ import (
 )
 
 type RequestMetadata struct {
-	RequestTime int64
+	RequestTime time.Time
 	SummonerId  int
 }
 
@@ -91,7 +91,7 @@ type GameResponseStats struct {
 
 func NewGameResponse() GameResponseWrapper {
 	grw := GameResponseWrapper{}
-	grw.Metadata.RequestTime = time.Now().Unix()
+	grw.Metadata.RequestTime = time.Now()
 
 	return grw
 }

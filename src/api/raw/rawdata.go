@@ -126,7 +126,7 @@ func GetLatestLeague(summoner_id int, queue_type string) (structs.LeagueResponse
 
 	latest := result
 	for iter.Next(&result) {
-		if result.Metadata.RequestTime > latest.Metadata.RequestTime {
+		if result.Metadata.RequestTime.After(latest.Metadata.RequestTime) {
 			latest = result
 		}
 	}
