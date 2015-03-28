@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"shared/queue"
 	"shared/structs"
