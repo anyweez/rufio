@@ -117,7 +117,7 @@ func main() {
 		}
 
 		log.Println(fmt.Sprintf("Saving processed game #%d...", pg.GameId))
-		collection.Insert(pg)
+		collection.Upsert(bson.M{"_id": pg.GameId}, pg)
 		log.Println("Done.")
 		listener.Finish(job)
 	}

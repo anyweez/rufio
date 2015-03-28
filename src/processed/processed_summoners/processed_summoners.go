@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"shared/queue"
 	"shared/structs"
@@ -34,7 +35,8 @@ func main() {
 	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range listener.Queue {
 		summoner := structs.ProcessedSummoner{
-			SummonerId: int(*job.TargetId),
+			SummonerId:  int(*job.TargetId),
+			CurrentTier: "UNRANKED",
 		}
 
 		// TODO: set name and other summoner metadata
@@ -50,18 +52,17 @@ func main() {
 		summoner.IncompleteGameIds = append(summoner.IncompleteGameIds, raw.GetIncompleteGameIdsBySummoner(summoner.SummonerId)...)
 
 		// Get the summoner's latest league rating.
-		latest, err := raw.GetLatestLeague(summoner.SummonerId, "RANKED_SOLO_5x5")
+		latest, err := raw.GetLatestLeague(summoner.SummonerId, "RANKED_TEAM_5x5")
 		if err != nil {
 			log.Println(err.Error())
 		} else {
-			tier := "UNKNOWN"
 			division_str := "0"
 			division := 0
 
 			// Sort through all of the entries and find one of the requested participant.
 			for _, entry := range latest.Entries {
 				if entry.PlayerOrTeamId == latest.ParticipantId {
-					tier = latest.Tier
+					summoner.CurrentTier = latest.Tier
 					division_str = entry.Division
 				}
 			}
@@ -88,12 +89,13 @@ func main() {
 				break
 			}
 
-			summoner.CurrentTier = tier
 			summoner.CurrentDivision = division
 		}
 
 		log.Println(fmt.Sprintf("Saving processed summoner #%d...", summoner.SummonerId))
-		collection.Insert(summoner)
+		fmt.Println(fmt.Sprintf("%s %d", summoner.CurrentTier, summoner.CurrentDivision))
+
+		collection.Upsert(bson.M{"_id": summoner.SummonerId}, summoner)
 		log.Println("Done.")
 		listener.Finish(job)
 	}
