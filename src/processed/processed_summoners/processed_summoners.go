@@ -4,7 +4,6 @@ import (
 	raw "api/raw"
 	"flag"
 	"fmt"
-	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"shared/queue"
@@ -16,21 +15,17 @@ var BEANSTALK_ADDRESS = flag.String("queue", "localhost:11300", "[host:port] The
 
 func main() {
 	flag.Parse()
-	// TODO: replace this with pulling something from a live queue.
+
 	listener, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"generate_processed_summoner"})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	// Create a MongoDB session and save the data.
-	log.Println("Connecting to Mongo @ " + *MONGO_CONNECTION_URL)
-	session, cerr := mgo.Dial(*MONGO_CONNECTION_URL)
-	if cerr != nil {
-		fmt.Println("Cannot connect to mongodb instance")
-		return
+	raw_api, err := raw.NewRawApi(*MONGO_CONNECTION_URL)
+	if err != nil {
+		log.Fatal(err.Error())
 	}
-	collection := session.DB("league").C("processed_summoners")
-	defer session.Close()
 
 	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range listener.Queue {
@@ -42,17 +37,17 @@ func main() {
 		// TODO: set name and other summoner metadata
 
 		//  Get game ID's.
-		responses := raw.GetCompleteGamesBySummoner(summoner.SummonerId)
+		responses := raw_api.GetCompleteGamesBySummoner(summoner.SummonerId)
 		for _, gr := range responses {
 			for _, game := range gr.Games {
 				summoner.CompleteGameIds = append(summoner.CompleteGameIds, game.GameId)
 			}
 		}
 
-		summoner.IncompleteGameIds = append(summoner.IncompleteGameIds, raw.GetIncompleteGameIdsBySummoner(summoner.SummonerId)...)
-
+		summoner.IncompleteGameIds = append(summoner.IncompleteGameIds, raw_api.GetIncompleteGameIdsBySummoner(summoner.SummonerId)...)
 		// Get the summoner's latest league rating.
-		latest, err := raw.GetLatestLeague(summoner.SummonerId, "RANKED_TEAM_5x5")
+		latest, err := raw_api.GetLatestLeague(summoner.SummonerId, "RANKED_SOLO_5x5")
+
 		if err != nil {
 			log.Println(err.Error())
 		} else {
@@ -95,6 +90,7 @@ func main() {
 		log.Println(fmt.Sprintf("Saving processed summoner #%d...", summoner.SummonerId))
 		fmt.Println(fmt.Sprintf("%s %d", summoner.CurrentTier, summoner.CurrentDivision))
 
+		collection := raw_api.Session.DB("league").C("processed_summoners")
 		collection.Upsert(bson.M{"_id": summoner.SummonerId}, summoner)
 		log.Println("Done.")
 		listener.Finish(job)

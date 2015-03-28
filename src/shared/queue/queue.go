@@ -1,6 +1,7 @@
 package queue
 
 import (
+	"fmt"
 	gproto "github.com/golang/protobuf/proto"
 	"github.com/kr/beanstalk"
 	proto "proto"
@@ -47,22 +48,25 @@ func (q *QueueListener) Finish(job proto.ProcessedJobRequest) {
 
 func harvestJobs(ts *beanstalk.TubeSet, out chan proto.ProcessedJobRequest) {
 	defer ts.Conn.Close()
+	// ok := true
 
 	for {
 		// Jobs will be claimed by another worker if they exceed two hours runtime.
 		id, body, err := ts.Reserve(2 * time.Hour)
 
 		if err != nil {
-			close(out)
+			fmt.Println("Error: " + err.Error())
+		//	close(out)
+			// ok = false 
+		} else {
+			job := proto.ProcessedJobRequest{}
+
+			gproto.Unmarshal(body, &job)
+			job.JobId = gproto.Uint64(id)
+
+			// Block until the current task is removed from the channel, then
+			// pop another one on.
+			out <- job
 		}
-
-		job := proto.ProcessedJobRequest{}
-
-		gproto.Unmarshal(body, &job)
-		job.JobId = gproto.Uint64(id)
-
-		// Block until the current task is removed from the channel, then
-		// pop another one on.
-		out <- job
 	}
 }
