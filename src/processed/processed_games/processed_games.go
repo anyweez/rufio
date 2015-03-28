@@ -21,8 +21,13 @@ var BEANSTALK_ADDRESS = flag.String("queue", "localhost:11300", "[host:port] The
 
 func main() {
 	flag.Parse()
-	// TODO: replace this with pulling something from a live queue.
+
 	listener, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"generate_processed_game"})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	raw_api, err := raw.NewRawApi(*MONGO_CONNECTION_URL)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -47,7 +52,7 @@ func main() {
 
 		// Fetch all instances of raw games that have information about
 		// this game ID and store them.
-		gr := raw.GetPartialGames(pg.GameId)
+		gr := raw_api.GetPartialGames(pg.GameId)
 		pps := make(map[int]structs.ProcessedPlayerStats)
 
 		for _, response := range gr {
@@ -60,7 +65,7 @@ func main() {
 				if game.GameId == pg.GameId {
 					// TODO: instead of getting 'latest', should get 'closest to timestamp X (but not after)'.
 					// Current approach works fine unless we're running a backfill.
-					latestLeague, lerr := raw.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
+					latestLeague, lerr := raw_api.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
 					tier := "UNKNOWN"
 					division_str := "0"
 					division := 0
