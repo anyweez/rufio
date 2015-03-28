@@ -72,6 +72,7 @@ func main() {
 			Url: fmt.Sprintf(API_URL, *job.TargetId, *API_KEY),
 		}
 	}
-	close(requests)
+
+	//	close(requests)
 	df.Close()
 }

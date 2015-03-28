@@ -71,6 +71,6 @@ func main() {
 		}
 	}
 
-	close(requests)
+	//	close(requests)
 	df.Close()
 }
