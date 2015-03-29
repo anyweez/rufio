@@ -66,7 +66,7 @@ func main() {
 					// TODO: instead of getting 'latest', should get 'closest to timestamp X (but not after)'.
 					// Current approach works fine unless we're running a backfill.
 					latestLeague, lerr := raw_api.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
-					tier := "UNKNOWN"
+					tier := "UNRANKED"
 					division_str := "0"
 					division := 0
 
