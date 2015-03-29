@@ -2,7 +2,6 @@ package rawdata
 
 import (
 	"errors"
-	"fmt"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	structs "shared/structs"
