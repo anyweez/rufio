@@ -107,7 +107,6 @@ func (r *RawApi) GetLatestLeague(summoner_id int, queue_type string) (structs.Le
 	// find the most recent one. If not, return an error.
 	result := structs.LeagueResponseWrapper{}
 	success := iter.Next(&result)
-	fmt.Println(fmt.Sprintf("%+v", result))
 
 	if !success {
 		return structs.LeagueResponseTier{}, errors.New("No matches found for summoner " + strconv.Itoa(summoner_id))

@@ -88,7 +88,6 @@ func main() {
 		}
 
 		log.Println(fmt.Sprintf("Saving processed summoner #%d...", summoner.SummonerId))
-		fmt.Println(fmt.Sprintf("%s %d", summoner.CurrentTier, summoner.CurrentDivision))
 
 		collection := raw_api.Session.DB("league").C("processed_summoners")
 		collection.Upsert(bson.M{"_id": summoner.SummonerId}, summoner)
