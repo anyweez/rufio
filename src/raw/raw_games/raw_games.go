@@ -55,7 +55,6 @@ func main() {
 			// Parse and store the response.
 			gr := structs.NewGameResponse()
 			json.Unmarshal(body, &gr.Response)
-			fmt.Println(fmt.Sprintf("%d: %s", len(gr.Response.Games), req.Url))
 
 			// Store the response
 			collection.Insert(gr)
@@ -68,8 +67,9 @@ func main() {
 	for job := range listener.Queue {
 		// TargetId for this job type are all summoner ID's.
 		requests <- structs.FetchRequest{
-			Job: job,
-			Url: fmt.Sprintf(API_URL, *job.TargetId, *API_KEY),
+			Job:   job,
+			Queue: "retrieve_recent_games",
+			Url:   fmt.Sprintf(API_URL, *job.TargetId, *API_KEY),
 		}
 	}
 

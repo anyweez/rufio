@@ -5,6 +5,7 @@ import (
 )
 
 type FetchRequest struct {
-	Job proto.ProcessedJobRequest
-	Url string
+	Job   proto.ProcessedJobRequest
+	Queue string // the name of the queue that the event came from
+	Url   string
 }

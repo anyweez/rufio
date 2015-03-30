@@ -2,7 +2,7 @@ package data_fetcher
 
 import (
 	//	"encoding/json"
-	"fmt"
+	"github.com/luke-segars/loglin"
 	// mgo "gopkg.in/mgo.v2"
 	// "io/ioutil"
 	// "math"
@@ -80,12 +80,34 @@ func run_fetcher(df *DataFetcher) {
  * Fetch the data from the provided URL and (eventually) store it.
  */
 func fetch(req structs.FetchRequest, df *DataFetcher) {
+	le := loglin.New(req.Queue, loglin.Fields{
+		"target_id": *req.Job.TargetId,
+	})
 	resp, err := http.Get(req.Url)
 
-	if err != nil {
-		fmt.Println(err.Error())
+	if err != nil || resp.StatusCode == 404 {
+		if err != nil {
+			le.Update(loglin.STATUS_ERROR, err.Error(), loglin.Fields{
+				"code":  resp.StatusCode,
+				"stage": "retrieval",
+			})
+		} else {
+			le.Update(loglin.STATUS_ERROR, "", loglin.Fields{
+				"code":  resp.StatusCode,
+				"stage": "retrieval",
+			})
+		}
 	} else {
 		defer resp.Body.Close()
+
+		le.Update(loglin.STATUS_OK, "", loglin.Fields{
+			"code":  resp.StatusCode,
+			"stage": "retrieval",
+		})
 		df.Config.WithResponse(resp, req)
+		le.Update(loglin.STATUS_COMPLETE, "", loglin.Fields{
+			"code":  resp.StatusCode,
+			"stage": "storage",
+		})
 	}
 }
