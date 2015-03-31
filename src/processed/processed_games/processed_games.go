@@ -4,6 +4,7 @@ import (
 	raw "api/raw"
 	"flag"
 	"fmt"
+	"github.com/luke-segars/loglin"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
@@ -45,7 +46,9 @@ func main() {
 
 	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range listener.Queue {
-		fmt.Println(fmt.Sprintf("Received job PROCESS GAME: %d", *job.TargetId))
+		le := loglin.New("process_game", loglin.Fields{
+			"target_id": *job.TargetId,
+		})
 
 		pg := structs.ProcessedGame{}
 		pg.GameId = int(*job.TargetId)
@@ -106,8 +109,8 @@ func main() {
 					// and look for others.
 					pps[response.SummonerId] = structs.ProcessedPlayerStats{
 						SummonerId:       response.SummonerId,
-						SummonerTier:     tier,     // TODO: fetch this from raw_leagues logs
-						SummonerDivision: division, // TODO: fetch this from raw_leagues logs
+						SummonerTier:     tier,
+						SummonerDivision: division,
 						NumDeaths:        game.Stats.NumDeaths,
 						MinionsKilled:    game.Stats.MinionsKilled,
 						WardsPlaced:      game.Stats.WardPlaced,
@@ -126,5 +129,7 @@ func main() {
 		collection.Upsert(bson.M{"_id": pg.GameId}, pg)
 		log.Println("Done.")
 		listener.Finish(job)
+
+		le.Update(loglin.STATUS_COMPLETE, "", nil)
 	}
 }

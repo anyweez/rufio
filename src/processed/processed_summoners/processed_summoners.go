@@ -4,6 +4,7 @@ import (
 	raw "api/raw"
 	"flag"
 	"fmt"
+	"github.com/luke-segars/loglin"
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"shared/queue"
@@ -29,6 +30,10 @@ func main() {
 
 	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range listener.Queue {
+		le := loglin.New("process_summoner", loglin.Fields{
+			"target_id": *job.TargetId,
+		})
+
 		summoner := structs.ProcessedSummoner{
 			SummonerId:  int(*job.TargetId),
 			CurrentTier: "UNRANKED",
@@ -93,5 +98,7 @@ func main() {
 		collection.Upsert(bson.M{"_id": summoner.SummonerId}, summoner)
 		log.Println("Done.")
 		listener.Finish(job)
+
+		le.Update(loglin.STATUS_COMPLETE, "", nil)
 	}
 }
