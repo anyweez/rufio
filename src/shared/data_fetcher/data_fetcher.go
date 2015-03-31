@@ -82,7 +82,7 @@ func run_fetcher(df *DataFetcher) {
 func fetch(req structs.FetchRequest, df *DataFetcher) {
 	le := loglin.New(req.Queue, loglin.Fields{
 		"target_id": *req.Job.TargetId,
-		"task":      req.Job,
+		"task":      *req.Job.Type,
 	})
 	resp, err := http.Get(req.Url)
 
