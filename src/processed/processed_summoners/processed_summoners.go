@@ -7,6 +7,7 @@ import (
 	"github.com/luke-segars/loglin"
 	"gopkg.in/mgo.v2/bson"
 	"log"
+	proto "proto"
 	"shared/queue"
 	"shared/structs"
 )
@@ -31,6 +32,7 @@ func main() {
 	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range listener.Queue {
 		le := loglin.New("process_summoner", loglin.Fields{
+			"task":      proto.ProcessedJobRequest_GENERATE_PROCESSED_SUMMONER,
 			"target_id": *job.TargetId,
 		})
 
@@ -99,6 +101,8 @@ func main() {
 		log.Println("Done.")
 		listener.Finish(job)
 
-		le.Update(loglin.STATUS_COMPLETE, "", nil)
+		le.Update(loglin.STATUS_COMPLETE, "", loglin.Fields{
+			"code": 200,
+		})
 	}
 }

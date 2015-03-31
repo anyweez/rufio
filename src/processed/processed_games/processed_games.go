@@ -8,13 +8,10 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
+	proto "proto"
 	"shared/queue"
 	"shared/structs"
 	"time"
-	// "github.com/iwanbk/gobeanstalk"
-	// "log"
-	// gproto "code.google.com/p/goprotobuf/proto"
-	// proto "proto"
 )
 
 var MONGO_CONNECTION_URL = flag.String("mongodb", "localhost", "The URL that mgo should use to connect to Mongo.")
@@ -48,6 +45,7 @@ func main() {
 	for job := range listener.Queue {
 		le := loglin.New("process_game", loglin.Fields{
 			"target_id": *job.TargetId,
+			"task":      proto.ProcessedJobRequest_GENERATE_PROCESSED_GAME,
 		})
 
 		pg := structs.ProcessedGame{}
@@ -130,6 +128,8 @@ func main() {
 		log.Println("Done.")
 		listener.Finish(job)
 
-		le.Update(loglin.STATUS_COMPLETE, "", nil)
+		le.Update(loglin.STATUS_COMPLETE, "", loglin.Fields{
+			"code": 200,
+		})
 	}
 }
