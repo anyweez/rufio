@@ -9,6 +9,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	proto "proto"
+	shared "shared"
 	"shared/queue"
 	"shared/structs"
 	"time"
@@ -61,6 +62,9 @@ func main() {
 				pg.GameTimestamp = int64(game.CreateDate)
 				// Divide by one thousand since the value is in milliseconds.
 				pg.GameDate = time.Unix(int64(game.CreateDate)/1000, 0).Format("2006-01-02")
+				// Get game type
+				pg.GameType = shared.GetGameType(game)
+
 				// Only do processing on the game that's being handled in this job.
 				// Other games should be discarded.
 				if game.GameId == pg.GameId {
