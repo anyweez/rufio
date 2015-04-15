@@ -47,7 +47,7 @@ func main() {
 
 	df := fetcher.NewDataFetcher(fetcher.DataFetcherConfig{
 		RateLimit:  500,
-		RatePeriod: 600,
+		RatePeriod: 600, // in seconds (10 minutes here)
 		Requests:   requests,
 		WithResponse: func(response *http.Response, req structs.FetchRequest) {
 			body, _ := ioutil.ReadAll(response.Body)
