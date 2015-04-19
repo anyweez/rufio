@@ -5,7 +5,7 @@ import (
 )
 
 type ProcessedLeague struct {
-	SummonerId int
+	SummonerId int `bson:"_id"`
 	LastUpdate time.Time
 
 	Current    ProcessedLeagueRank

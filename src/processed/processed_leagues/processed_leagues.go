@@ -14,7 +14,7 @@ import (
 var MONGO_CONNECTION = flag.String("mongodb", "localhost", "A connection string identifying a MongoDB instance.")
 
 type ParsedLeagueInfo struct {
-	SummonerId int `bson:"_id"`
+	SummonerId int
 	Tier       string
 	Division   int
 	LastKnown  time.Time
