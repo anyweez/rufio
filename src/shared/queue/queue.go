@@ -3,7 +3,7 @@ package queue
 import (
 	gproto "github.com/golang/protobuf/proto"
 	"github.com/kr/beanstalk"
-	"github.com/luke-segars/loglin"
+	"log"
 	proto "proto"
 	"time"
 )
@@ -51,7 +51,6 @@ func harvestJobs(ts *beanstalk.TubeSet, out chan proto.ProcessedJobRequest) {
 	// ok := true
 
 	for {
-		le := loglin.New("harvest-job", loglin.Fields{})
 		// Jobs will be claimed by another worker if they exceed two hours runtime.
 		id, body, err := ts.Reserve(2 * time.Hour)
 
@@ -61,10 +60,10 @@ func harvestJobs(ts *beanstalk.TubeSet, out chan proto.ProcessedJobRequest) {
 			if cerr, ok := err.(beanstalk.ConnError); ok {
 				// Could be beanstalk.ErrDeadline, which is fine to ignore.
 				if cerr.Err != beanstalk.ErrDeadline {
-					le.Update(loglin.STATUS_ERROR, "Error fetching job.", nil)
+					log.Fatal("Error fetching job: " + cerr.Error())
 				}
 			} else {
-				le.Update(loglin.STATUS_ERROR, "Error fetching job.", nil)
+				log.Fatal("Error fetching job: " + cerr.Error())
 			}
 		} else {
 			job := proto.ProcessedJobRequest{}
@@ -72,9 +71,6 @@ func harvestJobs(ts *beanstalk.TubeSet, out chan proto.ProcessedJobRequest) {
 			gproto.Unmarshal(body, &job)
 			job.JobId = gproto.Uint64(id)
 
-			le.Update(loglin.STATUS_OK, "Job retrieved.", loglin.Fields{
-				"jobid": job.JobId,
-			})
 			// Block until the current task is removed from the channel, then
 			// pop another one on.
 			out <- job

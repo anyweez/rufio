@@ -30,7 +30,8 @@ func main() {
 	log.Println("Connecting to Mongo @ " + *MONGO_CONNECTION_URL)
 	session, cerr := mgo.Dial(*MONGO_CONNECTION_URL)
 	if cerr != nil {
-		fmt.Println("Cannot connect to mongodb instance")
+		log.Fatal("Cannot connect to mongodb instance: " + cerr.Error())
+		return
 	}
 	collection := session.DB("league").C("raw_games")
 	log.Println("Done.")
@@ -38,7 +39,8 @@ func main() {
 	// Connect to beanstalk task queue to get summoner ID's.
 	listener, err := queue.NewQueueListener(*BEANSTALK_ADDRESS, []string{"retrieve_recent_games"})
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal("Cannot connect to beanstalkd instance: " + err.Error())
+		return
 	}
 
 	// Create the data fetcher that's going to make all of the API requests
