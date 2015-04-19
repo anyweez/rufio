@@ -89,7 +89,7 @@ func fetch(req structs.FetchRequest, df *DataFetcher) {
 	if err != nil || resp.StatusCode == 404 {
 		if err != nil {
 			le.Update(loglin.STATUS_ERROR, err.Error(), loglin.Fields{
-				"code":  resp.StatusCode,
+				"code":  -1,
 				"stage": "retrieval",
 			})
 		} else {
@@ -105,7 +105,9 @@ func fetch(req structs.FetchRequest, df *DataFetcher) {
 			"code":  resp.StatusCode,
 			"stage": "retrieval",
 		})
+
 		df.Config.WithResponse(resp, req)
+
 		le.Update(loglin.STATUS_COMPLETE, "", loglin.Fields{
 			"code":  resp.StatusCode,
 			"stage": "storage",

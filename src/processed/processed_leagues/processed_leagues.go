@@ -14,7 +14,7 @@ import (
 var MONGO_CONNECTION = flag.String("mongodb", "localhost", "A connection string identifying a MongoDB instance.")
 
 type ParsedLeagueInfo struct {
-	SummonerId int
+	SummonerId int `bson:_id`
 	Tier       string
 	Division   int
 	LastKnown  time.Time
@@ -100,6 +100,7 @@ func main() {
 
 	// Get all raw records for all users.
 	collection := api.Session.DB("league").C("raw_leagues")
+
 	// TODO: order by Metadata.RequestTime
 	iter := collection.Find(nil).Iter()
 	defer iter.Close()
@@ -107,12 +108,9 @@ func main() {
 
 	record := structs.LeagueResponseWrapper{}
 	for iter.Next(&record) {
-		le.Update(loglin.STATUS_OK, "started", nil)
 		// For each record, check to see if there's an existing user history. if so,
 		// check to see if the divion and tier are the same.
 		leagueInfo := extractLeagueInfo(record)
-
-		le.Update(loglin.STATUS_OK, "League info extracted", nil)
 		for _, li := range leagueInfo {
 			// Check to see if there's an existing user history.
 			league, exists := history[li.SummonerId]
@@ -158,6 +156,7 @@ func main() {
 		}
 	}
 
+	le.Update(loglin.STATUS_OK, "Writing output", nil)
 	// Write the processed league object to storage.
 	collection = api.Session.DB("league").C("processed_leagues")
 	for summonerId, league := range history {
