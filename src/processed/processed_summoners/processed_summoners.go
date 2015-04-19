@@ -56,7 +56,7 @@ func main() {
 		latest, err := raw_api.GetLatestLeague(summoner.SummonerId, "RANKED_SOLO_5x5")
 
 		if err != nil {
-			log.Println(err.Error())
+			le.Update(loglin.STATUS_WARNING, "No rank information available.", nil)
 		} else {
 			division_str := "0"
 			division := 0
@@ -69,7 +69,7 @@ func main() {
 				}
 			}
 
-			// Convert the
+			// Convert the division string into an integer.
 			switch division_str {
 			case "I":
 				division = 1

@@ -16,7 +16,7 @@ type RawApi struct {
 
 func NewRawApi(connection string) (RawApi, error) {
 	api := RawApi{}
-	session, err:= mgo.Dial(connection)
+	session, err := mgo.Dial(connection)
 
 	if err != nil {
 		return api, err
@@ -99,9 +99,9 @@ func (r *RawApi) GetIncompleteGameIdsBySummoner(summoner_id int) []int {
 func (r *RawApi) GetLatestLeague(summoner_id int, queue_type string) (structs.LeagueResponseTier, error) {
 	collection := r.Session.DB("league").C("raw_leagues")
 	iter := collection.Find(bson.M{
-	 	"response." + strconv.Itoa(summoner_id): bson.M{"$exists": true},
+		"response." + strconv.Itoa(summoner_id): bson.M{"$exists": true},
 	}).Iter()
-	
+
 	// Check to make sure that at least one result came back. If so, iterate through all results to
 	// find the most recent one. If not, return an error.
 	result := structs.LeagueResponseWrapper{}
