@@ -14,7 +14,7 @@ import (
 var MONGO_CONNECTION = flag.String("mongodb", "localhost", "A connection string identifying a MongoDB instance.")
 
 type ParsedLeagueInfo struct {
-	SummonerId int `bson:_id`
+	SummonerId int `bson:"_id"`
 	Tier       string
 	Division   int
 	LastKnown  time.Time
@@ -120,7 +120,7 @@ func main() {
 			if exists {
 				// If the new league info is different than current info, bump "current" to
 				// historical and create a new "current."
-				if li.LastKnown.After(league.Current.PromotionTime) && (league.Current.Tier != li.Tier || league.Current.Division != li.Division) {
+				if li.LastKnown.After(league.Current.LastKnown) && (league.Current.Tier != li.Tier || league.Current.Division != li.Division) {
 					le.Update(loglin.STATUS_OK, "Updating new league status", loglin.Fields{
 						"op":         "new",
 						"summonerid": li.SummonerId,
@@ -129,7 +129,7 @@ func main() {
 					})
 
 					league.Historical = append(league.Historical, league.Current)
-					league.Current.PromotionTime = li.LastKnown
+					league.Current.LastKnown = li.LastKnown
 					league.Current.Tier = li.Tier
 					league.Current.Division = li.Division
 				}
@@ -147,9 +147,9 @@ func main() {
 					SummonerId: li.SummonerId,
 					LastUpdate: time.Now(),
 					Current: structs.ProcessedLeagueRank{
-						PromotionTime: li.LastKnown,
-						Tier:          li.Tier,
-						Division:      li.Division,
+						LastKnown: li.LastKnown,
+						Tier:      li.Tier,
+						Division:  li.Division,
 					},
 				}
 			}

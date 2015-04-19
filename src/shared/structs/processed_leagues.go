@@ -14,7 +14,7 @@ type ProcessedLeague struct {
 
 type ProcessedLeagueRank struct {
 	// The approximate time that the user was promoted to this rank.
-	PromotionTime time.Time
+	LastKnown time.Time
 
 	Tier     string
 	Division int

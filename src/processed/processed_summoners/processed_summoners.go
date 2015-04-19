@@ -1,7 +1,8 @@
 package main
 
 import (
-	raw "api/raw"
+	processed_api "api/processed"
+	raw_api "api/raw"
 	"flag"
 	"fmt"
 	"github.com/luke-segars/loglin"
@@ -10,6 +11,7 @@ import (
 	proto "proto"
 	"shared/queue"
 	"shared/structs"
+	"time"
 )
 
 var MONGO_CONNECTION_URL = flag.String("mongodb", "localhost", "The URL that mgo should use to connect to Mongo.")
@@ -24,7 +26,12 @@ func main() {
 	}
 
 	// Create a MongoDB session and save the data.
-	raw_api, err := raw.NewRawApi(*MONGO_CONNECTION_URL)
+	raw, err := raw_api.NewRawApi(*MONGO_CONNECTION_URL)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	processed, err := processed_api.NewProcessedApi(*MONGO_CONNECTION_URL)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -44,59 +51,27 @@ func main() {
 		// TODO: set name and other summoner metadata
 
 		//  Get game ID's.
-		responses := raw_api.GetCompleteGamesBySummoner(summoner.SummonerId)
+		responses := raw.GetCompleteGamesBySummoner(summoner.SummonerId)
 		for _, gr := range responses {
 			for _, game := range gr.Games {
 				summoner.CompleteGameIds = append(summoner.CompleteGameIds, game.GameId)
 			}
 		}
 
-		summoner.IncompleteGameIds = append(summoner.IncompleteGameIds, raw_api.GetIncompleteGameIdsBySummoner(summoner.SummonerId)...)
+		summoner.IncompleteGameIds = append(summoner.IncompleteGameIds, raw.GetIncompleteGameIdsBySummoner(summoner.SummonerId)...)
 		// Get the summoner's latest league rating.
-		latest, err := raw_api.GetLatestLeague(summoner.SummonerId, "RANKED_SOLO_5x5")
+		league, err := processed.GetLeagueAt(summoner.SummonerId, time.Now())
 
 		if err != nil {
 			le.Update(loglin.STATUS_WARNING, "No rank information available.", nil)
 		} else {
-			division_str := "0"
-			division := 0
-
-			// Sort through all of the entries and find one of the requested participant.
-			for _, entry := range latest.Entries {
-				if entry.PlayerOrTeamId == latest.ParticipantId {
-					summoner.CurrentTier = latest.Tier
-					division_str = entry.Division
-				}
-			}
-
-			// Convert the division string into an integer.
-			switch division_str {
-			case "I":
-				division = 1
-				break
-			case "II":
-				division = 2
-				break
-			case "III":
-				division = 3
-				break
-			case "IV":
-				division = 4
-				break
-			case "V":
-				division = 5
-				break
-			default:
-				division = 0
-				break
-			}
-
-			summoner.CurrentDivision = division
+			summoner.CurrentDivision = league.Division
+			summoner.CurrentTier = league.Tier
 		}
 
 		log.Println(fmt.Sprintf("Saving processed summoner #%d...", summoner.SummonerId))
 
-		collection := raw_api.Session.DB("league").C("processed_summoners")
+		collection := raw.Session.DB("league").C("processed_summoners")
 		collection.Upsert(bson.M{"_id": summoner.SummonerId}, summoner)
 		log.Println("Done.")
 		listener.Finish(job)
