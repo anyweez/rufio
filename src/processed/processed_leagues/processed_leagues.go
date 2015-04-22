@@ -99,7 +99,8 @@ func main() {
 
 	// Load summoner list and convert it into a map for O(1) lookups.
 	summoners := make(map[int]bool)
-	for id := range summ {
+	for _, id := range summ {
+		fmt.Println(id)
 		summoners[id] = true
 	}
 
@@ -133,7 +134,7 @@ func main() {
 		// check to see if the divion and tier are the same.
 		leagueInfo := extractLeagueInfo(record)
 		for _, li := range leagueInfo {
-			// Check to see if this is an eligible summoner.
+			// Check to see if this is an eligible summoner (if it's included on the list).
 			if _, eligible := summoners[li.SummonerId]; eligible {
 				// Check to see if there's an existing user history.
 				league, exists := history[li.SummonerId]
