@@ -81,7 +81,7 @@ func run_fetcher(df *DataFetcher) {
  */
 func fetch(req structs.FetchRequest, df *DataFetcher) {
 	// Check to make sure there's actually a job coming through.
-	if req.Job == nil {
+	if req.Job.TargetId == nil || req.Job.Type == nil {
 		return
 	}
 
