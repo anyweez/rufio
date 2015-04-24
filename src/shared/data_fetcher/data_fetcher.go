@@ -80,6 +80,11 @@ func run_fetcher(df *DataFetcher) {
  * Fetch the data from the provided URL and (eventually) store it.
  */
 func fetch(req structs.FetchRequest, df *DataFetcher) {
+	// Check to make sure there's actually a job coming through.
+	if req.Job == nil {
+		return
+	}
+
 	le := loglin.New(req.Queue, loglin.Fields{
 		"target_id": *req.Job.TargetId,
 		"task":      *req.Job.Type,
