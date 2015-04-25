@@ -201,7 +201,7 @@ func main() {
 		err := processed.StoreLeague(league)
 		if err != nil {
 			le.Update(loglin.STATUS_WARNING, err.Error(), loglin.Fields{
-				"summonerId": summonerId,
+				"summonerId": league.SummonerId,
 			})
 		}
 	}
