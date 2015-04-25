@@ -134,9 +134,14 @@ func main() {
 			pg.Stats = append(pg.Stats, v)
 		}
 
+		fmt.Println(fmt.Sprintf("# stats records for game %d: %d", pg.GameId, len(pg.Stats)))
 		log.Println(fmt.Sprintf("Saving processed game #%d...", pg.GameId))
-		collection.Upsert(bson.M{"_id": pg.GameId}, pg)
-		log.Println("Done.")
+		_, err := collection.Upsert(bson.M{"_id": pg.GameId}, pg)
+		if err != nil {
+			le.Update(loglin.STATUS_ERROR, err.Error(), nil)
+		} else {
+			log.Println("Done.")
+		}
 		listener.Finish(job)
 
 		le.Update(loglin.STATUS_COMPLETE, "", loglin.Fields{
