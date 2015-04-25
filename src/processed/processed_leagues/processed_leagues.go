@@ -200,9 +200,9 @@ func main() {
 	for _, league := range history {
 		err := processed.StoreLeague(league)
 		if err != nil {
-			// le.Update(loglin.STATUS_WARNING, err.Error(), loglin.Fields{
-			// 	"summonerId": summonerId,
-			// })
+			le.Update(loglin.STATUS_WARNING, err.Error(), loglin.Fields{
+				"summonerId": summonerId,
+			})
 		}
 	}
 }
