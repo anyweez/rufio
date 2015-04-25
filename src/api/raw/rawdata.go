@@ -36,7 +36,7 @@ func NewRawApi(connection string) (RawApi, error) {
  * so it's better to check processed_game logs if you're looking for more complete
  * game views.
  */
-func (r *RawApi) GetPartialGames(gameid int) []structs.GameResponse {
+func (r *RawApi) GetPartialGames(gameid int) ([]structs.GameResponse, error) {
 	gr := make([]structs.GameResponse, 0)
 	collection := r.Session.DB("league").C("raw_games")
 	iter := collection.Find(bson.M{"response.games.gameid": gameid}).Iter()
@@ -49,9 +49,10 @@ func (r *RawApi) GetPartialGames(gameid int) []structs.GameResponse {
 
 	if iter.Err() != nil {
 		log.Println("Game retrieval ERROR: " + iter.Err().Error())
+		return gr, iter.Err()
 	}
 
-	return gr
+	return gr, nil
 }
 
 /**
@@ -102,12 +103,13 @@ func (r *RawApi) GetIncompleteGameIdsBySummoner(summoner_id int) []int {
 }
 
 /**
- * Returns the most recent raw_league result for the provided summoner.
+ * Returns the most recent league result for the provided summoner from PROCESSED_LEAGUES.
  */
-func (r *RawApi) GetLatestLeague(summoner_id int, queue_type string) (structs.LeagueResponseTier, error) {
-	collection := r.Session.DB("league").C("raw_leagues")
+/*
+func (r *RawApi) GetLatestLeague(summoner_id int, queue_type string) (structs.ProcessedLeagueRank, error) {
+	collection := r.Session.DB("league").C("processed_leagues")
 	iter := collection.Find(bson.M{
-		"response." + strconv.Itoa(summoner_id): bson.M{"$exists": true},
+		"_id": summoner_id,
 	}).Iter()
 
 	// Check to make sure that at least one result came back. If so, iterate through all results to
@@ -119,22 +121,13 @@ func (r *RawApi) GetLatestLeague(summoner_id int, queue_type string) (structs.Le
 		return structs.LeagueResponseTier{}, errors.New("No matches found for summoner " + strconv.Itoa(summoner_id))
 	}
 
-	latest := result
-	for iter.Next(&result) {
-		if result.Metadata.RequestTime.After(latest.Metadata.RequestTime) {
-			latest = result
-		}
+	if result.Current == nil {
+		return nil, errors.New("Unknown league rank.")
 	}
 
-	for _, tier := range latest.Response[strconv.Itoa(summoner_id)] {
-		if tier.Queue == queue_type {
-			return tier, nil
-		}
-	}
-
-	return structs.LeagueResponseTier{}, errors.New("No matches found for queue type " + queue_type)
+	return result.Current, nil
 }
-
+*/
 func (r *RawApi) GetRawSummonerInfo(summoner_id int) (structs.RawSummonerResponse, error) {
 	collection := r.Session.DB("league").C("raw_summoners")
 	// TODO: Get the most recent record (order by metadata.requesttime)

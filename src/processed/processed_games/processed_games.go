@@ -1,6 +1,7 @@
 package main
 
 import (
+	processed "api/processed"
 	raw "api/raw"
 	"flag"
 	"fmt"
@@ -31,6 +32,11 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	processed_api, err := processed.NewProcessedApi(*MONGO_CONNECTION_URL)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	// Create a MongoDB session and save the data.
 	log.Println("Connecting to Mongo @ " + *MONGO_CONNECTION_URL)
 	session, cerr := mgo.Dial(*MONGO_CONNECTION_URL)
@@ -53,7 +59,13 @@ func main() {
 		// Fetch all instances of raw games that have information about
 		// this game ID and store them.
 		fmt.Println(fmt.Sprintf("Fetching partials for game %d", pg.GameId))
-		gr := raw_api.GetPartialGames(pg.GameId)
+		gr, err := raw_api.GetPartialGames(pg.GameId)
+		if err != nil {
+			// If we can't fetch data, abandon.
+			le.Update(loglin.STATUS_ERROR, err.Error(), nil)
+			listener.Finish(job)
+			continue
+		}
 		fmt.Println(fmt.Sprintf("Relevant raw game records found: %d", len(gr)))
 
 		// One pps container per job (game)
@@ -76,42 +88,46 @@ func main() {
 
 				// TODO: instead of getting 'latest', should get 'closest to timestamp X (but not after)'.
 				// Current approach works fine unless we're running a backfill.
-				latestLeague, lerr := raw_api.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
+				// latestLeague, lerr := raw_api.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
+				latestLeague, lerr := processed_api.GetLeagueAt(response.SummonerId, time.Unix(int64(game.CreateDate)/1000, 0))
 				tier := "UNRANKED"
-				division_str := "0"
 				division := 0
 
-				if lerr == nil {
-					// Sort through all of the entries and find one of the requested participant.
-					for _, entry := range latestLeague.Entries {
-						if entry.PlayerOrTeamId == latestLeague.ParticipantId {
-							tier = latestLeague.Tier
-							division_str = entry.Division
-						}
-					}
-
-					// Convert the
-					switch division_str {
-					case "I":
-						division = 1
-						break
-					case "II":
-						division = 2
-						break
-					case "III":
-						division = 3
-						break
-					case "IV":
-						division = 4
-						break
-					case "V":
-						division = 5
-						break
-					default:
-						division = 0
-						break
-					}
+				if lerr != nil {
+					tier = latestLeague.Tier
+					division = latestLeague.Division
 				}
+				// if lerr == nil {
+				// 	// Sort through all of the entries and find one of the requested participant.
+				// 	for _, entry := range latestLeague.Entries {
+				// 		if entry.PlayerOrTeamId == latestLeague.ParticipantId {
+				// 			tier = latestLeague.Tier
+				// 			division_str = entry.Division
+				// 		}
+				// 	}
+
+				// 	// Convert the
+				// 	switch division_str {
+				// 	case "I":
+				// 		division = 1
+				// 		break
+				// 	case "II":
+				// 		division = 2
+				// 		break
+				// 	case "III":
+				// 		division = 3
+				// 		break
+				// 	case "IV":
+				// 		division = 4
+				// 		break
+				// 	case "V":
+				// 		division = 5
+				// 		break
+				// 	default:
+				// 		division = 0
+				// 		break
+				// 	}
+				// }
 				// This GameRecord has enough information to populate one user's
 				// ProcessedPlayerStats. Generate that object, add it to the game,
 				// and look for others.
@@ -137,7 +153,7 @@ func main() {
 		log.Println(fmt.Sprintf("Saving processed game #%d...", pg.GameId))
 
 		collection := session.DB("league").C("processed_games")
-		_, err := collection.Upsert(bson.M{"_id": pg.GameId}, pg)
+		_, err = collection.Upsert(bson.M{"_id": pg.GameId}, pg)
 		if err != nil {
 			le.Update(loglin.STATUS_ERROR, err.Error(), nil)
 		} else {

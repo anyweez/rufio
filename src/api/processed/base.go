@@ -2,6 +2,7 @@ package processed
 
 import (
 	mgo "gopkg.in/mgo.v2"
+	"time"
 )
 
 type ProcessedApi struct {
@@ -16,6 +17,7 @@ func NewProcessedApi(connection string) (ProcessedApi, error) {
 		return api, err
 	}
 
+	session.SetSocketTimeout(10 * time.Hour)
 	api.Session = session
 	return api, nil
 }
