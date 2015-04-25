@@ -43,6 +43,10 @@ func (r *RawApi) GetPartialGames(gameid int) []structs.GameResponse {
 		gr = append(gr, result.Response)
 	}
 
+	if iter.Err() != nil {
+		log.Println("Game retrieval ERROR: " + iter.Err().Error())
+	}
+
 	return gr
 }
 

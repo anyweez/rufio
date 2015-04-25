@@ -40,8 +40,6 @@ func main() {
 	}
 	defer session.Close()
 
-	collection := session.DB("league").C("processed_games")
-
 	// This will be infinite unless `jc` is closed (which it currently isn't).
 	for job := range listener.Queue {
 		le := loglin.New("process_game", loglin.Fields{
@@ -54,6 +52,7 @@ func main() {
 
 		// Fetch all instances of raw games that have information about
 		// this game ID and store them.
+		fmt.Println(fmt.Sprintf("Fetching partials for game %d", gr.GameId))
 		gr := raw_api.GetPartialGames(pg.GameId)
 		fmt.Println(fmt.Sprintf("Relevant raw game records found: %d", len(gr)))
 
@@ -136,12 +135,16 @@ func main() {
 
 		fmt.Println(fmt.Sprintf("# stats records for game %d: %d", pg.GameId, len(pg.Stats)))
 		log.Println(fmt.Sprintf("Saving processed game #%d...", pg.GameId))
+
+		collection := session.DB("league").C("processed_games")
 		_, err := collection.Upsert(bson.M{"_id": pg.GameId}, pg)
 		if err != nil {
 			le.Update(loglin.STATUS_ERROR, err.Error(), nil)
 		} else {
 			log.Println("Done.")
 		}
+
+		// Mark job as complete.
 		listener.Finish(job)
 
 		le.Update(loglin.STATUS_COMPLETE, "", loglin.Fields{
