@@ -155,6 +155,9 @@ func main() {
 						league.Current.LastKnown = li.LastKnown
 						league.Current.Tier = li.Tier
 						league.Current.Division = li.Division
+
+						// Store it back in the object
+						history[li.SummonerId] = league
 					}
 					// If it doesn't already exist, we should create it and set "current" to whatever
 					// values we have here.
@@ -182,8 +185,7 @@ func main() {
 
 	le.Update(loglin.STATUS_OK, "Writing output", nil)
 
-	// Write the processed league object to storage.
-	//	collection = api.Session.DB("league").C("processed_leagues")
+	// Write all of the processed league objects to storage.
 	processed, err := processedapi.NewProcessedApi(*MONGO_CONNECTION)
 
 	for _, league := range history {

@@ -83,14 +83,11 @@ func main() {
 				// Get game type
 				pg.GameType = shared.GetGameType(game)
 
-				// TODO: instead of getting 'latest', should get 'closest to timestamp X (but not after)'.
-				// Current approach works fine unless we're running a backfill.
-				// latestLeague, lerr := raw_api.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
 				latestLeague, lerr := processed_api.GetLeagueAt(response.SummonerId, time.Unix(int64(game.CreateDate)/1000, 0))
 				tier := "UNRANKED"
 				division := 0
 
-				// If no errors, set the 
+				// If no errors, set the tier and division
 				if lerr == nil {
 					// If Tier is set, copy it over.
 					if len(latestLeague.Tier) > 0 {
