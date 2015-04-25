@@ -171,8 +171,9 @@ func main() {
 						SummonerId: li.SummonerId,
 						LastUpdate: time.Now(),
 						Current: structs.ProcessedLeagueRank{
-							Tier:     li.Tier,
-							Division: li.Division,
+							LastKnown: li.LastKnown,
+							Tier:      li.Tier,
+							Division:  li.Division,
 						},
 					}
 				}

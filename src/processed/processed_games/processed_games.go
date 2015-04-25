@@ -66,7 +66,6 @@ func main() {
 			listener.Finish(job)
 			continue
 		}
-		fmt.Println(fmt.Sprintf("Relevant raw game records found: %d", len(gr)))
 
 		// One pps container per job (game)
 		pps := make(map[int]structs.ProcessedPlayerStats)
@@ -79,7 +78,6 @@ func main() {
 					continue
 				}
 
-				fmt.Println(fmt.Sprintf("Found game data for summoner %d on game %d", response.SummonerId, game.GameId))
 				pg.GameTimestamp = int64(game.CreateDate)
 				// Divide by one thousand since the value is in milliseconds.
 				pg.GameDate = time.Unix(int64(game.CreateDate)/1000, 0).Format("2006-01-02")
@@ -97,37 +95,7 @@ func main() {
 					tier = latestLeague.Tier
 					division = latestLeague.Division
 				}
-				// if lerr == nil {
-				// 	// Sort through all of the entries and find one of the requested participant.
-				// 	for _, entry := range latestLeague.Entries {
-				// 		if entry.PlayerOrTeamId == latestLeague.ParticipantId {
-				// 			tier = latestLeague.Tier
-				// 			division_str = entry.Division
-				// 		}
-				// 	}
 
-				// 	// Convert the
-				// 	switch division_str {
-				// 	case "I":
-				// 		division = 1
-				// 		break
-				// 	case "II":
-				// 		division = 2
-				// 		break
-				// 	case "III":
-				// 		division = 3
-				// 		break
-				// 	case "IV":
-				// 		division = 4
-				// 		break
-				// 	case "V":
-				// 		division = 5
-				// 		break
-				// 	default:
-				// 		division = 0
-				// 		break
-				// 	}
-				// }
 				// This GameRecord has enough information to populate one user's
 				// ProcessedPlayerStats. Generate that object, add it to the game,
 				// and look for others.
@@ -140,7 +108,6 @@ func main() {
 					WardsPlaced:      game.Stats.WardPlaced,
 					WardsCleared:     game.Stats.WardKilled,
 				}
-				fmt.Println(fmt.Sprintf("Added game data to pps container for summoner %d", response.SummonerId))
 			}
 		}
 
@@ -149,8 +116,7 @@ func main() {
 			pg.Stats = append(pg.Stats, v)
 		}
 
-		fmt.Println(fmt.Sprintf("# stats records for game %d: %d", pg.GameId, len(pg.Stats)))
-		log.Println(fmt.Sprintf("Saving processed game #%d...", pg.GameId))
+		le.Update(loglin.STATUS_OK, "Storing", nil)
 
 		collection := session.DB("league").C("processed_games")
 		_, err = collection.Upsert(bson.M{"_id": pg.GameId}, pg)
