@@ -2,7 +2,9 @@
 all:
 	mkdir -p src/proto
 	protoc --plugin=bin/protoc-gen-go --go_out=src/ proto/*.proto
-	go install raw/raw_games raw/raw_leagues processed/processed_games processed/processed_summoners processed/processed_leagues taskqueue
+	go install raw/raw_games raw/raw_leagues raw/raw_summoners
+	go install processed/processed_games processed/processed_summoners processed/processed_leagues 
+	go install taskqueue
 
 inputs:
 	./extract_inputs
