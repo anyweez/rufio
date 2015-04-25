@@ -55,70 +55,77 @@ func main() {
 		// Fetch all instances of raw games that have information about
 		// this game ID and store them.
 		gr := raw_api.GetPartialGames(pg.GameId)
+		fmt.Println(fmt.Sprintf("Relevant raw game records found: %d", len(gr)))
+
+		// One pps container per job (game)
 		pps := make(map[int]structs.ProcessedPlayerStats)
 
 		for _, response := range gr {
 			for _, game := range response.Games {
+				// GetPartialGames currently returns all games within a record if one of them has the desired gid.
+				// We need to filter out most at the application level until I get the mongo query refined.
+				if game.GameId != pg.GameId {
+					continue
+				}
+
+				fmt.Println(fmt.Sprintf("Found game data for summoner %d on game %d", response.SummonerId, game.GameId))
 				pg.GameTimestamp = int64(game.CreateDate)
 				// Divide by one thousand since the value is in milliseconds.
 				pg.GameDate = time.Unix(int64(game.CreateDate)/1000, 0).Format("2006-01-02")
 				// Get game type
 				pg.GameType = shared.GetGameType(game)
 
-				// Only do processing on the game that's being handled in this job.
-				// Other games should be discarded.
-				if game.GameId == pg.GameId {
-					// TODO: instead of getting 'latest', should get 'closest to timestamp X (but not after)'.
-					// Current approach works fine unless we're running a backfill.
-					latestLeague, lerr := raw_api.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
-					tier := "UNRANKED"
-					division_str := "0"
-					division := 0
+				// TODO: instead of getting 'latest', should get 'closest to timestamp X (but not after)'.
+				// Current approach works fine unless we're running a backfill.
+				latestLeague, lerr := raw_api.GetLatestLeague(response.SummonerId, "RANKED_SOLO_5x5")
+				tier := "UNRANKED"
+				division_str := "0"
+				division := 0
 
-					if lerr == nil {
-						// Sort through all of the entries and find one of the requested participant.
-						for _, entry := range latestLeague.Entries {
-							if entry.PlayerOrTeamId == latestLeague.ParticipantId {
-								tier = latestLeague.Tier
-								division_str = entry.Division
-							}
-						}
-
-						// Convert the
-						switch division_str {
-						case "I":
-							division = 1
-							break
-						case "II":
-							division = 2
-							break
-						case "III":
-							division = 3
-							break
-						case "IV":
-							division = 4
-							break
-						case "V":
-							division = 5
-							break
-						default:
-							division = 0
-							break
+				if lerr == nil {
+					// Sort through all of the entries and find one of the requested participant.
+					for _, entry := range latestLeague.Entries {
+						if entry.PlayerOrTeamId == latestLeague.ParticipantId {
+							tier = latestLeague.Tier
+							division_str = entry.Division
 						}
 					}
-					// This GameRecord has enough information to populate one user's
-					// ProcessedPlayerStats. Generate that object, add it to the game,
-					// and look for others.
-					pps[response.SummonerId] = structs.ProcessedPlayerStats{
-						SummonerId:       response.SummonerId,
-						SummonerTier:     tier,
-						SummonerDivision: division,
-						NumDeaths:        game.Stats.NumDeaths,
-						MinionsKilled:    game.Stats.MinionsKilled,
-						WardsPlaced:      game.Stats.WardPlaced,
-						WardsCleared:     game.Stats.WardKilled,
+
+					// Convert the
+					switch division_str {
+					case "I":
+						division = 1
+						break
+					case "II":
+						division = 2
+						break
+					case "III":
+						division = 3
+						break
+					case "IV":
+						division = 4
+						break
+					case "V":
+						division = 5
+						break
+					default:
+						division = 0
+						break
 					}
 				}
+				// This GameRecord has enough information to populate one user's
+				// ProcessedPlayerStats. Generate that object, add it to the game,
+				// and look for others.
+				pps[response.SummonerId] = structs.ProcessedPlayerStats{
+					SummonerId:       response.SummonerId,
+					SummonerTier:     tier,
+					SummonerDivision: division,
+					NumDeaths:        game.Stats.NumDeaths,
+					MinionsKilled:    game.Stats.MinionsKilled,
+					WardsPlaced:      game.Stats.WardPlaced,
+					WardsCleared:     game.Stats.WardKilled,
+				}
+				fmt.Println(fmt.Sprintf("Added game data to pps container for summoner %d", response.SummonerId))
 			}
 		}
 
