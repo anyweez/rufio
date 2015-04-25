@@ -100,7 +100,6 @@ func main() {
 	// Load summoner list and convert it into a map for O(1) lookups.
 	summoners := make(map[int]bool)
 	for _, id := range summ {
-		fmt.Println(id)
 		summoners[id] = true
 	}
 
