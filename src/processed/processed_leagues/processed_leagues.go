@@ -158,6 +158,9 @@ func main() {
 
 						// Store it back in the object
 						history[li.SummonerId] = league
+					} else if li.LastKnown.After(league.Current.LastKnown) {
+						league.Current.LastKnown = li.LastKnown
+						history[li.SummonerId] = league
 					}
 					// If it doesn't already exist, we should create it and set "current" to whatever
 					// values we have here.
@@ -179,6 +182,9 @@ func main() {
 						},
 					}
 				}
+
+				fmt.Println(fmt.Sprintf("raw: %s", li.LastKnown))
+				fmt.Println(history[li.SummonerId].Current.LastKnown)
 			}
 		}
 	}
@@ -189,6 +195,7 @@ func main() {
 	processed, err := processedapi.NewProcessedApi(*MONGO_CONNECTION)
 
 	for _, league := range history {
+		fmt.Println(fmt.Sprintf("%+v", league))
 		err := processed.StoreLeague(league)
 		if err != nil {
 			// le.Update(loglin.STATUS_WARNING, err.Error(), loglin.Fields{
