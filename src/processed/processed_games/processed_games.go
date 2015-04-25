@@ -58,7 +58,6 @@ func main() {
 
 		// Fetch all instances of raw games that have information about
 		// this game ID and store them.
-		fmt.Println(fmt.Sprintf("Fetching partials for game %d", pg.GameId))
 		gr, err := raw_api.GetPartialGames(pg.GameId)
 		if err != nil {
 			// If we can't fetch data, abandon.
