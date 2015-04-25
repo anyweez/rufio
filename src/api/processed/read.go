@@ -18,6 +18,7 @@ func (api *ProcessedApi) GetLeagueAt(summonerId int, when time.Time) (structs.Pr
 		return structs.ProcessedLeagueRank{}, err
 	}
 
+	// TODO: I don't think this condition is fully correct. Still need to check lastKnown for certain conditions I *think*
 	if len(record.Historical) == 0 {
 		return record.Current, nil
 	} else {

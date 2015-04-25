@@ -90,9 +90,18 @@ func main() {
 				tier := "UNRANKED"
 				division := 0
 
-				if lerr != nil {
-					tier = latestLeague.Tier
-					division = latestLeague.Division
+				// If no errors, set the 
+				if lerr == nil {
+					// If Tier is set, copy it over.
+					if len(latestLeague.Tier) > 0 {
+						tier = latestLeague.Tier
+					}	
+					// If Division is set, copy it over.
+					if latestLeague.Division > 0 {
+						division = latestLeague.Division
+					}
+				} else {
+					le.Update(loglin.STATUS_WARNING, lerr.Error(), nil)
 				}
 
 				// This GameRecord has enough information to populate one user's
