@@ -126,3 +126,20 @@ func (r *RawApi) GetLatestLeague(summoner_id int, queue_type string) (structs.Le
 
 	return structs.LeagueResponseTier{}, errors.New("No matches found for queue type " + queue_type)
 }
+
+func (r *RawApi) GetRawSummonerInfo(summoner_id int) (structs.RawSummonerResponse, error) {
+	collection := r.Session.DB("league").C("raw_summoners")
+	// TODO: Get the most recent record (order by metadata.requesttime)
+	iter := collection.Find(bson.M{
+		"response." + strconv.Itoa(summoner_id): bson.M{"$exists": true},
+	}).Iter()
+
+	result := structs.SummonerResponseWrapper{}
+	success := iter.Next(&result)
+
+	if !success {
+		return structs.RawSummonerResponse{}, errors.New("No matches found for summoner " + strconv.Itoa(summoner_id))
+	}
+
+	return result.Response[strconv.Itoa(summoner_id)], nil
+}

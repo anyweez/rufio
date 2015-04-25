@@ -48,7 +48,15 @@ func main() {
 			CurrentTier: "UNRANKED",
 		}
 
-		// TODO: set name and other summoner metadata
+		// Set the summoner name (and potentially other metadata)
+		rawSum, err := raw.GetRawSummonerInfo(summoner.SummonerId)
+		if err == nil {
+			summoner.Name = rawSum.Name
+			fmt.Println("Name: " + summoner.Name)
+			fmt.Println("%+v", rawSum)
+		} else {
+			le.Update(loglin.STATUS_WARNING, "No summoner name found.", nil)
+		}
 
 		//  Get game ID's.
 		responses := raw.GetCompleteGamesBySummoner(summoner.SummonerId)
