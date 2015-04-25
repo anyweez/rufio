@@ -7,6 +7,7 @@ import (
 	"log"
 	structs "shared/structs"
 	strconv "strconv"
+	"time"
 )
 
 // TODO: engineer this whole mess better.
@@ -18,6 +19,8 @@ type RawApi struct {
 func NewRawApi(connection string) (RawApi, error) {
 	api := RawApi{}
 	session, err := mgo.Dial(connection)
+	// Prevent timeout errors unless things are REALLY bad.
+	session.SetSocketTimeout(10 * time.Minute)
 
 	if err != nil {
 		return api, err
