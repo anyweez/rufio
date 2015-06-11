@@ -7,6 +7,6 @@ import (
 var StatsLogger *statsd.StatsdClient
 
 func init() {
-	StatsLogger = statsd.NewStatsdClient("statsd.service.fy:8125", "loldata.")
+	StatsLogger = statsd.NewStatsdClient("statsd.service.fy:8125", "league.")
 	StatsLogger.CreateSocket()
 }
