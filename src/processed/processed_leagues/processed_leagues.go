@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/luke-segars/loglin"
+	"github.com/quipo/statsd"
 	"log"
 	shared "shared"
 	"shared/structs"
@@ -91,6 +92,11 @@ func extractLeagueInfo(record structs.LeagueResponseWrapper) []ParsedLeagueInfo 
 
 func main() {
 	flag.Parse()
+
+	// Setup statsd
+	sdc := statsd.NewStatsdClient("oracle.fy:8125", "league.")
+	sdc.CreateSocket()
+
 	fmt.Println("Reading summoner ID's.")
 	summ, err := shared.LoadIds(*TARGET_IDS)
 	if err != nil {
@@ -187,6 +193,9 @@ func main() {
 							Division:  li.Division,
 						},
 					}
+
+					// Increment the league_complete counter.
+					sdc.Incr(shared.PROCESSED_LEAGUE_COMPLETE, 1)
 				}
 			}
 		}
@@ -199,6 +208,7 @@ func main() {
 
 	for _, league := range history {
 		err := processed.StoreLeague(league)
+
 		if err != nil {
 			le.Update(loglin.STATUS_WARNING, err.Error(), loglin.Fields{
 				"summonerId": league.SummonerId,

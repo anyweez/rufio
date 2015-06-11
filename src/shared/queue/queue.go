@@ -5,6 +5,7 @@ import (
 	"github.com/kr/beanstalk"
 	"log"
 	proto "proto"
+	"shared"
 	"time"
 )
 
@@ -74,6 +75,26 @@ func harvestJobs(ts *beanstalk.TubeSet, out chan proto.ProcessedJobRequest) {
 			// Block until the current task is removed from the channel, then
 			// pop another one on.
 			out <- job
+
+			metric_label := ""
+			switch {
+			case *job.Type == proto.ProcessedJobRequest_GENERATE_PROCESSED_GAME:
+				metric_label = "_process_game"
+				break
+			case *job.Type == proto.ProcessedJobRequest_RETRIEVE_RECENT_GAMES:
+				metric_label = "_retrieve_games"
+				break
+			case *job.Type == proto.ProcessedJobRequest_GENERATE_PROCESSED_SUMMONER:
+				metric_label = "_process_summoner"
+				break
+			case *job.Type == proto.ProcessedJobRequest_RETRIEVE_RECENT_LEAGUE:
+				metric_label = "_retrieve_league"
+				break
+			case *job.Type == proto.ProcessedJobRequest_RETRIEVE_SUMMONER_INFO:
+				metric_label = "_retrieve_summoner"
+				break
+			}
+			shared.StatsLogger.Incr("read_task"+metric_label, 1)
 		}
 	}
 }
