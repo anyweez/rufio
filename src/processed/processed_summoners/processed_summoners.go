@@ -48,8 +48,10 @@ func main() {
 			CurrentTier: "UNRANKED",
 		}
 
+		le.Update(loglin.STATUS_OK, "Starting GetRawSummonerInfo", nil)
 		// Set the summoner name (and potentially other metadata)
 		rawSum, err := raw.GetRawSummonerInfo(summoner.SummonerId)
+		le.Update(loglin.STATUS_OK, "Finishing GetRawSummonerInfo", nil)
 		if err == nil {
 			summoner.Name = rawSum.Name
 		} else {
@@ -57,16 +59,23 @@ func main() {
 		}
 
 		//  Get game ID's.
+		le.Update(loglin.STATUS_OK, "Starting GetCompleteGamesBySummoner", nil)
 		responses := raw.GetCompleteGamesBySummoner(summoner.SummonerId)
 		for _, gr := range responses {
 			for _, game := range gr.Games {
 				summoner.CompleteGameIds = append(summoner.CompleteGameIds, game.GameId)
 			}
 		}
+		le.Update(loglin.STATUS_OK, "Finishing GetCompleteGamesBySummoner", nil)
 
+		le.Update(loglin.STATUS_OK, "Starting GetIncompleteGameIdsBySummoner", nil)
 		summoner.IncompleteGameIds = append(summoner.IncompleteGameIds, raw.GetIncompleteGameIdsBySummoner(summoner.SummonerId)...)
+		le.Update(loglin.STATUS_OK, "Finishing GetIncompleteGameIdsBySummoner", nil)
+
 		// Get the summoner's latest league rating.
+		le.Update(loglin.STATUS_OK, "Starting GetLeagueAt", nil)
 		league, err := processed.GetLeagueAt(summoner.SummonerId, time.Now())
+		le.Update(loglin.STATUS_OK, "Finishing GetRawSummonerInfo", nil)
 
 		if err != nil {
 			le.Update(loglin.STATUS_WARNING, "No rank information available.", nil)
@@ -77,10 +86,11 @@ func main() {
 
 		log.Println(fmt.Sprintf("Saving processed summoner #%d...", summoner.SummonerId))
 
+		le.Update(loglin.STATUS_OK, "Saving", nil)
 		collection := raw.Session.DB("league").C("processed_summoners")
 		collection.Upsert(bson.M{"_id": summoner.SummonerId}, summoner)
-		log.Println("Done.")
 		listener.Finish(job)
+		le.Update(loglin.STATUS_OK, "Save complete", nil)
 
 		le.Update(loglin.STATUS_COMPLETE, "", loglin.Fields{
 			"code": 200,

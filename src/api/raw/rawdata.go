@@ -78,12 +78,10 @@ func (r *RawApi) GetIncompleteGameIdsBySummoner(summoner_id int) []int {
 	collection := r.Session.DB("league").C("raw_games")
 	iter := collection.Find(bson.M{
 		"response.games.fellowplayers.summonerid": summoner_id,
+	}).Select(bson.M{
+		"response.games.gameid":                   true,
+		"response.games.fellowplayers.summonerid": true,
 	}).Iter()
-	// TODO: Add these back.
-	// , bson.M{
-	// 	"response.games.gameid":                   true,
-	// 	"response.games.fellowplayers.summonerid": true,
-	// }).Iter()
 
 	result := structs.GameResponseWrapper{}
 
