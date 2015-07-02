@@ -5,5 +5,5 @@ go:
   - 1.4
   - tip
 before_install:
-  - deploy/setup.sh
+  - extra/deploy/setup.sh
   - make
