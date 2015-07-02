@@ -1,16 +1,16 @@
 package main
 
 import (
-	processed_api "api/processed"
-	raw_api "api/raw"
+	processed_api "github.com/luke-segars/loldata/api/processed"
+	raw_api "github.com/luke-segars/loldata/api/raw"
 	"flag"
 	"fmt"
 	"github.com/luke-segars/loglin"
 	"gopkg.in/mgo.v2/bson"
 	"log"
-	proto "proto"
-	"shared/queue"
-	"shared/structs"
+	proto "github.com/luke-segars/loldata/proto"
+	"github.com/luke-segars/loldata/shared/queue"
+	"github.com/luke-segars/loldata/shared/structs"
 	"time"
 )
 

@@ -1,15 +1,15 @@
 package main
 
 import (
-	processed "api/processed"
-	raw "api/raw"
+	processed "github.com/luke-segars/loldata/api/processed"
+	raw "github.com/luke-segars/loldata/api/raw"
 	"flag"
 	"github.com/luke-segars/loglin"
 	"log"
-	proto "proto"
-	shared "shared"
-	"shared/queue"
-	"shared/structs"
+	proto "github.com/luke-segars/loldata/proto"
+	"github.com/luke-segars/loldata/shared"
+	"github.com/luke-segars/loldata/shared/queue"
+	"github.com/luke-segars/loldata/shared/structs"
 	"time"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	gproto "github.com/golang/protobuf/proto"
 	"github.com/kr/beanstalk"
-	proto "proto"
+	proto "github.com/luke-segars/loldata/proto"
 	"time"
 )
 

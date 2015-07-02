@@ -5,7 +5,7 @@ import (
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"log"
-	structs "shared/structs"
+	structs "github.com/luke-segars/loldata/shared/structs"
 	strconv "strconv"
 	"time"
 )

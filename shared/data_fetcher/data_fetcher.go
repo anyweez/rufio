@@ -1,13 +1,9 @@
 package data_fetcher
 
 import (
-	//	"encoding/json"
 	"github.com/luke-segars/loglin"
-	// mgo "gopkg.in/mgo.v2"
-	// "io/ioutil"
-	// "math"
 	"net/http"
-	"shared/structs"
+	"github.com/luke-segars/loldata/shared/structs"
 	"time"
 )
 

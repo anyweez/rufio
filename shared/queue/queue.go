@@ -4,8 +4,8 @@ import (
 	gproto "github.com/golang/protobuf/proto"
 	"github.com/kr/beanstalk"
 	"log"
-	proto "proto"
-	"shared"
+	proto "github.com/luke-segars/loldata/proto"
+	"github.com/luke-segars/loldata/shared"
 	"time"
 )
 

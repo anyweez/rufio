@@ -2,7 +2,7 @@ package processed
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"shared/structs"
+	"github.com/luke-segars/loldata/shared/structs"
 	"time"
 )
 

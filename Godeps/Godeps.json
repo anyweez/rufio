@@ -1,0 +1,41 @@
+{
+	"ImportPath": "_/home/luke/git/loldata",
+	"GoVersion": "go1.4.2",
+	"Packages": [
+		"github.com/luke-segars/loldata/raw/raw_games",
+		"github.com/luke-segars/loldata/raw/raw_leagues",
+		"github.com/luke-segars/loldata/raw/raw_summoners",
+		"github.com/luke-segars/loldata/processed/processed_games",
+		"github.com/luke-segars/loldata/processed/processed_leagues",
+		"github.com/luke-segars/loldata/processed/processed_summoners",
+		"github.com/luke-segars/loldata/taskqueue"
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.8.2-20-gab7e46e",
+			"Rev": "ab7e46ea22bd379e660230844f96d20f1dabc21a"
+		},
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "67cbcadfc96f21404e1d5ef40e7f3b35b0a073c5"
+		},
+		{
+			"ImportPath": "github.com/kr/beanstalk",
+			"Rev": "4011ceaa3ceeeeb8f38e541d2e8efceba6d0b86e"
+		},
+		{
+			"ImportPath": "github.com/luke-segars/loglin",
+			"Rev": "dfc43a41b203f592dcec38214cea505663291b8d"
+		},
+		{
+			"ImportPath": "github.com/quipo/statsd",
+			"Rev": "b16c3be8a03e3c39a2d9c669b8f13f8876de61cd"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2",
+			"Comment": "r2015.06.03-3-g3569c88",
+			"Rev": "3569c88678d88179dcbd68d02ab081cbca3cd4d0"
+		}
+	]
+}

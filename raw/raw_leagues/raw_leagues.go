@@ -8,9 +8,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	fetcher "shared/data_fetcher"
-	"shared/queue"
-	"shared/structs"
+	fetcher "github.com/luke-segars/loldata/shared/data_fetcher"
+	"github.com/luke-segars/loldata/shared/queue"
+	"github.com/luke-segars/loldata/shared/structs"
 )
 
 // A few user-specified flags required for fetching summoner game data.
