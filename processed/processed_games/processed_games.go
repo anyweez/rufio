@@ -119,6 +119,7 @@ func handle_task(listener queue.QueueListener, job proto.ProcessedJobRequest, th
 				MinionsKilled:    game.Stats.MinionsKilled,
 				WardsPlaced:      game.Stats.WardPlaced,
 				WardsCleared:     game.Stats.WardKilled,
+				ChampionId:       game.ChampionId,
 			}
 		}
 	}
