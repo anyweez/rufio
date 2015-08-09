@@ -4,16 +4,16 @@ import (
 	"time"
 )
 
+/*
 type RequestMetadata struct {
 	RequestTime time.Time
 	SummonerId  int
 }
+*/
 
 // Master wrapper for game API + metadata.
 type GameResponseWrapper struct {
-	RawResponseWrapper
-
-	Metadata RequestMetadata
+	Metadata DocumentMetadata
 	Response GameResponse
 }
 
@@ -93,7 +93,7 @@ type GameResponseStats struct {
 
 func NewGameResponse() GameResponseWrapper {
 	grw := GameResponseWrapper{}
-	grw.Metadata.RequestTime = time.Now()
+	grw.Metadata.CreationTime = time.Now()
 
 	return grw
 }
