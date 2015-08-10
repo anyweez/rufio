@@ -40,3 +40,7 @@ func NewLeagueResponse() LeagueResponseWrapper {
 
 	return grw
 }
+
+func (lrw LeagueResponseWrapper) When() time.Time {
+	return lrw.Metadata.RequestTime
+}

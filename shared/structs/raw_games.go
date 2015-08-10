@@ -11,6 +11,8 @@ type RequestMetadata struct {
 
 // Master wrapper for game API + metadata.
 type GameResponseWrapper struct {
+	RawResponseWrapper
+
 	Metadata RequestMetadata
 	Response GameResponse
 }
@@ -94,4 +96,8 @@ func NewGameResponse() GameResponseWrapper {
 	grw.Metadata.RequestTime = time.Now()
 
 	return grw
+}
+
+func (grw GameResponseWrapper) When() time.Time {
+	return grw.Metadata.RequestTime
 }

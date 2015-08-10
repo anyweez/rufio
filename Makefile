@@ -12,9 +12,6 @@ all:
 	# Task queue
 	go install github.com/luke-segars/loldata/taskqueue
 
-inputs:
-	./extract_inputs
-
 clean:
 	rm raw_games raw_leagues processed_games
 	rm input/*
