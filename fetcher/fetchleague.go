@@ -1,12 +1,12 @@
 package main
 
 import (
-	"net/http"
-	"fmt"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
 	proto "github.com/luke-segars/rufio/proto"
 	structs "github.com/luke-segars/rufio/shared/structs"
+	"io/ioutil"
+	"net/http"
 )
 
 // Format of the game request URL.
@@ -14,11 +14,11 @@ var LEAGUE_API_URL = "https://na.api.pvp.net/api/lol/na/v2.5/league/by-summoner/
 
 func init() {
 	configs = append(configs, FetcherConfig{
-		FetchType: "league",
+		FetchType:   "league",
 		FetchParser: ParseLeague,
-		TubeName: "retrieve_recent_league",
-	
-		DatabaseName: "league",
+		TubeName:    "retrieve_recent_league",
+
+		DatabaseName:   "league",
 		CollectionName: "raw_leagues",
 
 		BuildUrl: MakeLeagueUrl,

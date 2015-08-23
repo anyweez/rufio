@@ -1,23 +1,23 @@
 package main
 
 import (
-	"net/http"
-	"fmt"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
 	proto "github.com/luke-segars/rufio/proto"
 	structs "github.com/luke-segars/rufio/shared/structs"
+	"io/ioutil"
+	"net/http"
 )
 
 const SUMMONER_API_URL = "https://na.api.pvp.net//api/lol/na/v1.4/summoner/%d?api_key=%s"
 
 func init() {
 	configs = append(configs, FetcherConfig{
-		FetchType: "summoner",
+		FetchType:   "summoner",
 		FetchParser: ParseSummoner,
-		TubeName: "retrieve_summoner_info",
-	
-		DatabaseName: "league",
+		TubeName:    "retrieve_summoner_info",
+
+		DatabaseName:   "league",
 		CollectionName: "raw_summoners",
 
 		BuildUrl: MakeSummonerUrl,

@@ -5,12 +5,11 @@ import (
 )
 
 type RateLimiter struct {
-
 }
 
 func NewRateLimiter(gapSize time.Duration) chan bool {
 	rate := make(chan bool)
-	
+
 	go tick(gapSize, rate)
 
 	return rate

@@ -2,25 +2,25 @@ package main
 
 import (
 	"flag"
-	"time"
-	"log"
-	"net/http"
 	"github.com/luke-segars/loglin"
-	mgo "gopkg.in/mgo.v2"
 	proto "github.com/luke-segars/rufio/proto"
 	queue "github.com/luke-segars/rufio/shared/queue"
 	structs "github.com/luke-segars/rufio/shared/structs"
+	mgo "gopkg.in/mgo.v2"
+	"log"
+	"net/http"
+	"time"
 )
 
 type FetcherConfig struct {
-	FetchType		string
-	FetchParser		func(*http.Response) (structs.RawResponseWrapper, error)
-	TubeName 		string // Beanstalk queue name
+	FetchType   string
+	FetchParser func(*http.Response) (structs.RawResponseWrapper, error)
+	TubeName    string // Beanstalk queue name
 
-	DatabaseName 	string
-	CollectionName 	string
+	DatabaseName   string
+	CollectionName string
 
-	BuildUrl		func(proto.ProcessedJobRequest, string) string
+	BuildUrl func(proto.ProcessedJobRequest, string) string
 }
 
 var configs []FetcherConfig
@@ -73,8 +73,8 @@ func Fetcher(config FetcherConfig, rate chan bool) {
 
 	// Continuously retrieve jobs from the queue.
 	for job := range listener.Queue {
-		<- rate
-	
+		<-rate
+
 		le := loglin.New(config.CollectionName, loglin.Fields{
 			"target_id": *job.TargetId,
 			"task":      *job.Type,
@@ -92,12 +92,12 @@ func Fetcher(config FetcherConfig, rate chan bool) {
 			// Parse the response and insert it into the database.
 			parsed, err := config.FetchParser(response)
 			if err != nil {
-				le.Update(loglin.STATUS_ERROR, "Cannot parse: " + err.Error(), nil)
+				le.Update(loglin.STATUS_ERROR, "Cannot parse: "+err.Error(), nil)
 				return
 			}
 
 			collection.Insert(parsed)
-			
+
 			// Complete the job
 			listener.Finish(req.Job)
 			le.Update(loglin.STATUS_COMPLETE, "Job deleted from queue.", nil)
@@ -128,7 +128,7 @@ func request(request structs.FetchRequest, le loglin.LogEvent, withResponse func
 				"stage": "retrieval",
 			})
 		}
-	// On success, save
+		// On success, save
 	} else {
 		defer resp.Body.Close()
 

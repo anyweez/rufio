@@ -55,5 +55,5 @@ type ProcessedPlayerStats struct {
 	MinionsKilled int
 	WardsPlaced   int
 	WardsCleared  int
-	ChampionId	  int
+	ChampionId    int
 }

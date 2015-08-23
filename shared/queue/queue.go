@@ -3,9 +3,9 @@ package queue
 import (
 	gproto "github.com/golang/protobuf/proto"
 	"github.com/kr/beanstalk"
-	"log"
 	proto "github.com/luke-segars/rufio/proto"
 	"github.com/luke-segars/rufio/shared"
+	"log"
 	"time"
 )
 
