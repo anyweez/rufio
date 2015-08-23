@@ -51,8 +51,7 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	// TODO: CreateMapping() for each mapping type
-
+	log.Println("Mapping(s) loaded; starting job routines.")
 	workQueue := make(chan *JobRequest, *NUM_JOBS)
 	for i := 0; i < *NUM_JOBS; i++ {
 		go RunJob(workQueue)
@@ -103,36 +102,54 @@ func RunJob(queue chan *JobRequest) {
 	
 	// For each job from queue, retrieve all docs and create new docs.
 	for request := range queue {
+		log.Println("Request received for targetId ", *request.Job.TargetId)
+
 		// Create a new document and check the database to see if one already exists.
 		result := db.C(request.Comp.GetOutputCollection()).Find(bson.M{request.Comp.GetOutputKey(): *request.Job.TargetId})
 		processed := request.Comp.GetProcessedType()
 
 		// If a document already exists, use that instead.
 		if cnt, _ := result.Count(); cnt > 0 {
+			log.Println("Record already exists. Updating.")
 			result.One(&processed)
-		} 
+		} else {
+			log.Println("New record!")
+		}
 
 		// Execute each module to update the processed object.
+		log.Println("Running ", len(request.Comp.GetModules()), " modules.")
 		for _, module := range request.Comp.GetModules() {
 			// Get the mapping and fetch all ID's.
 			mapping := module.GetMapping()
 			ids := mapping.Get(*request.Job.TargetId)
 
-			// Fetch all docs
-			result = db.C(module.GetInputCollection()).Find(bson.M{module.GetInputKey(): ids})
+			// Fetch all docs with matching _id's
+			log.Println("Fetching docs for ", len(ids), " keys")
+			result = db.C(module.GetInputCollection()).Find(bson.M{module.GetInputKey(): bson.M{"$in": ids}})
+			log.Println("Fetch complete.")
+
 			cnt, _ := result.Count()
 			if cnt > 0 {
 				docs := make([]structs.Document, cnt)
 				result.All(&docs)
 				// Join them together in a module-specific way.
 				processed = module.Join(docs, processed, *request.Job.TargetId)
+				log.Println("module output")
+				log.Println(processed)
 			}
+			log.Println("Join complete.")
 		}
 
 		// Update or insert the document after all modules have been processed.
-		db.C(request.Comp.GetOutputCollection()).Upsert(bson.M{request.Comp.GetOutputKey(): *request.Job.TargetId}, processed)
+		log.Println(processed)
+		_, err := db.C(request.Comp.GetOutputCollection()).Upsert(bson.M{request.Comp.GetOutputKey(): *request.Job.TargetId}, processed)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		log.Println("Written to " + request.Comp.GetOutputCollection() + ":" + request.Comp.GetOutputKey() + "=", *request.Job.TargetId)
 
 		// Mark the job as completed.
 		request.Listener.Finish(request.Job)
+		return
 	}
 }

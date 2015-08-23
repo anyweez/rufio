@@ -29,6 +29,7 @@ func (rgm Raw2ProcessedGameModule) Join(docs []structs.Document, existing struct
 				continue
 			}
 
+			current.GameId = int(gameId)
 			current.GameTimestamp = int64(game.CreateDate)
 			current.GameDate = time.Unix(int64(game.CreateDate)/1000, 0).Format("2006-01-02")
 			current.GameType = shared.GetGameType(game)

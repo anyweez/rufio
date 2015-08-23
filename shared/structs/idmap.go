@@ -37,10 +37,11 @@ func LoadMappings(mongoUrl string, mongoDb string, types []string) (map[string]I
 	db := session.DB(mongoDb)
 
 	for _, mapName := range types {
+		log.Println("Loading " +  mapName + " mapping...")
+
 		switch (mapName) {
 			// Maps game ID's to raw game document ID's
 			case "game2rawgame":
-				log.Println("Loading game2rawgame mapping...")
 				idm["game2rawgame"] = NewIDMap()
 
 				doc := RawGameDocument{}

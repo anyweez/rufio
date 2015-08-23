@@ -10,12 +10,14 @@ func init() {
 		OutputCollection: "processed_games",
 		OutputKey: "_id",
 		Modules: []structs.IModule{
+			// Populate the majority of game-related fields (player stats, etc)
 			Raw2ProcessedGameModule{structs.Module{
 				InputCollection: "raw_games",
 				// Need to convert field name to mongo equivalent.
-				InputKey: "Metadata.DocumentId",
+				InputKey: "metadata.documentid",
 				MappingName: "game2rawgame",
 			}},
+			// Populate ranking information.
 			ProcessedLeague2ProcessedGameModule{structs.Module{
 				InputCollection: "processed_leagues", 
 				InputKey: "_id",
