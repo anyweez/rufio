@@ -5,8 +5,8 @@ import (
 	"flag"
 	gproto "github.com/golang/protobuf/proto"
 	"log"
-	proto "github.com/luke-segars/loldata/proto"
-	shared "github.com/luke-segars/loldata/shared"
+	proto "github.com/luke-segars/rufio/proto"
+	shared "github.com/luke-segars/rufio/shared"
 )
 
 /**

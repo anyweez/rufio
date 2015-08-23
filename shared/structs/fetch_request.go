@@ -1,7 +1,7 @@
 package structs
 
 import (
-	proto "github.com/luke-segars/loldata/proto"
+	proto "github.com/luke-segars/rufio/proto"
 )
 
 type FetchRequest struct {

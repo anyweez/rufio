@@ -1,7 +1,7 @@
 package shared
 
 import (
-	"github.com/luke-segars/loldata/shared/structs"
+	"github.com/luke-segars/rufio/shared/structs"
 )
 
 /**

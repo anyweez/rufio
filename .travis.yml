@@ -11,6 +11,5 @@ addons:
     sources:
       - protobuf-compiler
 
-before_install:
-  - extra/deploy/setup.sh
+install:
   - make

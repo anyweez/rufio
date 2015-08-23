@@ -23,3 +23,7 @@ func NewSummonerResponse() SummonerResponseWrapper {
 
 	return srw
 }
+
+func (srw SummonerResponseWrapper) When() time.Time {
+	return srw.Metadata.RequestTime
+}
